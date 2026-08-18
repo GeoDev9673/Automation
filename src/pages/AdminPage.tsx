@@ -1,27 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AdminPanel } from '../components/AdminPanel';
 import { AdminLogin } from '../components/AdminLogin';
 
 export const AdminPage: React.FC = () => {
+  // Always require authentication on every page visit / refresh
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  useEffect(() => {
-    // Check if session is already active in localStorage
-    const auth = localStorage.getItem('paralife_admin_auth') === 'true';
-    setIsAuthenticated(auth);
-  }, []);
 
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
   };
 
   const handleExit = () => {
-    localStorage.removeItem('paralife_admin_auth');
+    setIsAuthenticated(false);
     window.location.href = '/';
   };
 
   return (
-    <div className="min-h-screen bg-[#0e0f12] text-[#F2EEE8] selection:bg-[#FF2D85]/30">
+    <div className="min-h-screen bg-[#121316] text-[#F2EEE8] selection:bg-[#FF2D85]/30">
       {isAuthenticated ? (
         <AdminPanel onClose={handleExit} />
       ) : (

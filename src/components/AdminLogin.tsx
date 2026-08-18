@@ -16,7 +16,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) =
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (accessKey.trim() === MASTER_ACCESS_KEY) {
-      localStorage.setItem('paralife_admin_auth', 'true');
       onSuccess();
     } else {
       setError(true);
