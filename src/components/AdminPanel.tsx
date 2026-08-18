@@ -49,12 +49,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
 
   // SVG Chart Dimensions
   const chartWidth = 840;
-  const chartHeight = 260;
-  const paddingX = 40;
-  const paddingY = 30;
+  const chartHeight = 240;
+  const paddingX = 35;
+  const paddingY = 25;
 
   const chartData = data?.chartData || [];
-  const maxVisits = Math.max(...chartData.map((d) => d.visits), 5);
+  const maxVisits = Math.max(...chartData.map((d) => d.visits), 4);
 
   const points = chartData.map((d, index) => {
     const x = paddingX + (index / Math.max(chartData.length - 1, 1)) * (chartWidth - paddingX * 2);
@@ -77,6 +77,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         chartHeight - paddingY
       } Z`
     : '';
+
+  // Active display point (either hovered or the latest day)
+  const activePoint = hoveredPoint || (points.length > 0 ? points[points.length - 1] : null);
 
   return (
     <div className="min-h-screen w-full bg-[#121316] text-[#F2EEE8] selection:bg-[#FF2D85]/30">
@@ -160,7 +163,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
 
         {/* TAB 1: OVERVIEW & CHARTS */}
         {activeTab === 'overview' && (
-          <div className="flex flex-col space-y-20 animate-fade-in">
+          <div className="flex flex-col space-y-16 animate-fade-in">
             
             {/* 100% REAL Unique Devices Metric Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 border-b border-[#F2EEE8]/10 pb-16">
@@ -215,45 +218,48 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
 
             </div>
 
-            {/* REAL INTERACTIVE TRAFFIC ACTIVITY CHART */}
-            <div className="flex flex-col space-y-8">
-              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
+            {/* INTEGRATED TRAFFIC ACTIVITY CHART (Clean, No Clumsy Tooltip Boxes) */}
+            <div className="flex flex-col space-y-6">
+              
+              {/* Header with live inline detail HUD */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#F2EEE8]/10 pb-4 gap-3">
                 <div>
                   <span className="section-label text-[#F2EEE8]/52">
                     +signal activity
                   </span>
-                  <h3 className="type-h3 text-[#F2EEE8] mt-2">
-                    Real Traffic Trajectory
+                  <h3 className="type-h3 text-[#F2EEE8] mt-1">
+                    Device Activity Trajectory
                   </h3>
                 </div>
-                <div className="flex items-center space-x-6 text-[12px] uppercase tracking-[0.1em]">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full bg-[#FF2D85]"></span>
-                    <span className="text-[#F2EEE8]/76">Total Visits</span>
+
+                {/* Integrated live data read-out */}
+                {activePoint && (
+                  <div className="flex items-center space-x-3 text-[13px]">
+                    <span className="text-[#F2EEE8]/52 uppercase tracking-wider">
+                      {activePoint.fullDate || activePoint.date}:
+                    </span>
+                    <span className="text-[#FF2D85] font-semibold tracking-wide">
+                      {activePoint.visits} {activePoint.visits === 1 ? 'device' : 'devices'}
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full bg-[#00FF88]"></span>
-                    <span className="text-[#F2EEE8]/76">Uniques</span>
-                  </div>
-                </div>
+                )}
               </div>
 
-              {/* Chart Canvas */}
-              <div className="w-full bg-[#16171c] border border-[#F2EEE8]/10 p-6 md:p-8 relative overflow-x-auto">
+              {/* Seamless Chart Area */}
+              <div className="w-full bg-[#15161b] border border-[#F2EEE8]/10 p-6 relative overflow-x-auto">
                 <svg
                   viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                  className="w-full h-auto min-w-[580px]"
-                  style={{ overflow: 'visible' }}
+                  className="w-full h-auto min-w-[540px]"
                 >
                   <defs>
                     <linearGradient id="paralifeGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FF2D85" stopOpacity="0.25" />
+                      <stop offset="0%" stopColor="#FF2D85" stopOpacity="0.22" />
                       <stop offset="100%" stopColor="#FF2D85" stopOpacity="0.00" />
                     </linearGradient>
                   </defs>
 
-                  {/* Grid Lines */}
-                  {[0, 0.33, 0.66, 1].map((ratio) => {
+                  {/* Subtle Hairline Grid */}
+                  {[0, 0.5, 1].map((ratio) => {
                     const y = chartHeight - paddingY - ratio * (chartHeight - paddingY * 2);
                     const val = Math.round(ratio * maxVisits);
                     return (
@@ -263,12 +269,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                           y1={y}
                           x2={chartWidth - paddingX}
                           y2={y}
-                          stroke="rgba(242, 238, 232, 0.06)"
+                          stroke="rgba(242, 238, 232, 0.05)"
                         />
                         <text
-                          x={paddingX - 12}
+                          x={paddingX - 10}
                           y={y + 3}
-                          fill="rgba(242, 238, 232, 0.35)"
+                          fill="rgba(242, 238, 232, 0.3)"
                           fontSize="10"
                           textAnchor="end"
                           className="font-mono"
@@ -279,10 +285,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                     );
                   })}
 
-                  {/* Pink Fill Area */}
+                  {/* Gradient Area Fill */}
                   {areaPath && <path d={areaPath} fill="url(#paralifeGradient)" />}
 
-                  {/* Main Pink Wave */}
+                  {/* Active Point Vertical Guideline */}
+                  {hoveredPoint && (
+                    <line
+                      x1={hoveredPoint.x}
+                      y1={hoveredPoint.y}
+                      x2={hoveredPoint.x}
+                      y2={chartHeight - paddingY}
+                      stroke="#FF2D85"
+                      strokeWidth="1"
+                      strokeDasharray="3 3"
+                    />
+                  )}
+
+                  {/* Neon Curve */}
                   {linePath && (
                     <path
                       d={linePath}
@@ -294,66 +313,49 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                   )}
 
                   {/* Interactive Nodes */}
-                  {points.map((p, idx) => (
-                    <g key={idx}>
-                      <circle
-                        cx={p.x}
-                        cy={p.y}
-                        r="4"
-                        fill="#121316"
-                        stroke="#FF2D85"
-                        strokeWidth="2"
-                        className="cursor-pointer hover:r-6 transition-all duration-150"
-                        onMouseEnter={() =>
-                          setHoveredPoint({
-                            x: p.x,
-                            y: p.y,
-                            date: p.fullDate,
-                            visits: p.visits,
-                            uniques: p.uniques,
-                          })
-                        }
-                        onMouseLeave={() => setHoveredPoint(null)}
-                      />
-                      {(idx === 0 ||
-                        idx === Math.floor(points.length / 2) ||
-                        idx === points.length - 1) && (
-                        <text
-                          x={p.x}
-                          y={chartHeight - 4}
-                          fill="rgba(242, 238, 232, 0.45)"
-                          fontSize="10"
-                          textAnchor="middle"
-                          className="uppercase tracking-wider"
-                        >
-                          {p.date}
-                        </text>
-                      )}
-                    </g>
-                  ))}
+                  {points.map((p, idx) => {
+                    const isHovered = hoveredPoint?.x === p.x;
+                    return (
+                      <g key={idx}>
+                        <circle
+                          cx={p.x}
+                          cy={p.y}
+                          r={isHovered ? '6' : '4'}
+                          fill={isHovered ? '#FF2D85' : '#121316'}
+                          stroke="#FF2D85"
+                          strokeWidth="2"
+                          className="cursor-pointer transition-all duration-150"
+                          onMouseEnter={() =>
+                            setHoveredPoint({
+                              x: p.x,
+                              y: p.y,
+                              date: p.date,
+                              fullDate: p.fullDate,
+                              visits: p.visits,
+                              uniques: p.uniques,
+                            })
+                          }
+                          onMouseLeave={() => setHoveredPoint(null)}
+                        />
+                        {/* Dates on bottom axis */}
+                        {(idx === 0 ||
+                          idx === Math.floor(points.length / 2) ||
+                          idx === points.length - 1) && (
+                          <text
+                            x={p.x}
+                            y={chartHeight - 4}
+                            fill="rgba(242, 238, 232, 0.45)"
+                            fontSize="10"
+                            textAnchor="middle"
+                            className="uppercase tracking-wider"
+                          >
+                            {p.date}
+                          </text>
+                        )}
+                      </g>
+                    );
+                  })}
                 </svg>
-
-                {/* Floating Tooltip */}
-                {hoveredPoint && (
-                  <div
-                    className="absolute z-20 pointer-events-none bg-[#121316] border border-[#FF2D85]/80 px-4 py-2.5 shadow-2xl text-[12px] flex flex-col space-y-1"
-                    style={{
-                      left: `${(hoveredPoint.x / chartWidth) * 100}%`,
-                      top: `${(hoveredPoint.y / chartHeight) * 100 - 25}%`,
-                      transform: 'translate(-50%, -100%)',
-                    }}
-                  >
-                    <span className="font-medium text-[#F2EEE8] tracking-wider uppercase">
-                      {hoveredPoint.date}
-                    </span>
-                    <span className="text-[#FF2D85] font-mono">
-                      Visits: {hoveredPoint.visits}
-                    </span>
-                    <span className="text-[#00FF88] font-mono">
-                      Unique: {hoveredPoint.uniques}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
 
