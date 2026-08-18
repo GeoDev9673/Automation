@@ -16,7 +16,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     visits: number;
     uniques: number;
   } | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'subscribers' | 'logs'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'subscribers'>('overview');
 
   const loadData = async (range: number) => {
     setLoading(true);
@@ -159,16 +159,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
             <span className="text-[10px] bg-[#FF2D85]/20 text-[#FF2D85] px-1.5 py-0.5 rounded">
               {data?.subscribers.length || 0}
             </span>
-          </button>
-          <button
-            onClick={() => setActiveTab('logs')}
-            className={`pb-3 text-[13px] uppercase tracking-widest font-medium border-b-2 transition-colors ${
-              activeTab === 'logs'
-                ? 'border-[#FF2D85] text-white'
-                : 'border-transparent text-[#F2EEE8]/50 hover:text-[#F2EEE8]'
-            }`}
-          >
-            Live Logs
           </button>
         </div>
 
@@ -504,48 +494,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 </table>
               </div>
             )}
-          </div>
-        )}
-
-        {/* TAB CONTENT: LIVE LOGS */}
-        {activeTab === 'logs' && (
-          <div className="bg-[#141519] border border-[#F2EEE8]/10 p-6 rounded-lg space-y-4 animate-fade-in">
-            <h3 className="text-base font-normal text-white">Recent Visitor Transmissions</h3>
-            <p className="text-[12px] text-[#F2EEE8]/50">
-              Live pageview events recorded during client sessions
-            </p>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-[12px]">
-                <thead>
-                  <tr className="border-b border-[#F2EEE8]/10 text-[#F2EEE8]/40 uppercase text-[10px] tracking-wider">
-                    <th className="py-2 px-3">Time</th>
-                    <th className="py-2 px-3">Visitor ID</th>
-                    <th className="py-2 px-3">Device</th>
-                    <th className="py-2 px-3">Browser</th>
-                    <th className="py-2 px-3">Path</th>
-                    <th className="py-2 px-3">Referrer</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data?.recentVisits.map((log) => (
-                    <tr
-                      key={log.id}
-                      className="border-b border-[#F2EEE8]/5 hover:bg-[#191b22] transition-colors font-mono"
-                    >
-                      <td className="py-2.5 px-3 text-[#F2EEE8]/60">
-                        {new Date(log.timestamp).toLocaleTimeString('ru-RU')}
-                      </td>
-                      <td className="py-2.5 px-3 text-[#FF2D85]">{log.visitorId}</td>
-                      <td className="py-2.5 px-3 text-white">{log.device}</td>
-                      <td className="py-2.5 px-3 text-[#F2EEE8]/70">{log.browser}</td>
-                      <td className="py-2.5 px-3 text-white">{log.path}</td>
-                      <td className="py-2.5 px-3 text-[#00FF88]">{log.referrer}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
         )}
 

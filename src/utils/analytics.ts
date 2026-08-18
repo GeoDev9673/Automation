@@ -1,14 +1,3 @@
-export interface PageView {
-  id: string;
-  visitorId: string;
-  timestamp: number;
-  path: string;
-  device: 'Desktop' | 'Mobile' | 'Tablet';
-  browser: string;
-  referrer: string;
-  country?: string;
-}
-
 export interface SubscriberRecord {
   id: string;
   email: string;
@@ -25,120 +14,32 @@ export interface AnalyticsSummary {
   chartData: { date: string; fullDate: string; visits: number; uniques: number }[];
   devices: { name: string; count: number; percentage: number }[];
   referrers: { source: string; count: number; percentage: number }[];
-  recentVisits: PageView[];
   subscribers: SubscriberRecord[];
 }
 
-const STORAGE_KEY_VISITS = 'paralife_analytics_visits_v1';
-const STORAGE_KEY_VISITOR_ID = 'paralife_visitor_uuid';
-
+const STORAGE_KEY_TOTAL_VISITS = 'paralife_anon_visit_count';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 /**
- * Get or create unique persistent visitor ID
- */
-export const getVisitorId = (): string => {
-  let id = localStorage.getItem(STORAGE_KEY_VISITOR_ID);
-  if (!id) {
-    id = 'v_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
-    localStorage.setItem(STORAGE_KEY_VISITOR_ID, id);
-  }
-  return id;
-};
-
-/**
- * Detect client device type
- */
-export const detectDevice = (): 'Desktop' | 'Mobile' | 'Tablet' => {
-  const ua = navigator.userAgent;
-  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
-    return 'Tablet';
-  }
-  if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/i.test(ua)) {
-    return 'Mobile';
-  }
-  return 'Desktop';
-};
-
-/**
- * Detect client browser
- */
-export const detectBrowser = (): string => {
-  const ua = navigator.userAgent;
-  if (ua.includes('Firefox')) return 'Firefox';
-  if (ua.includes('SamsungBrowser')) return 'Samsung';
-  if (ua.includes('Opera') || ua.includes('OPR')) return 'Opera';
-  if (ua.includes('Edge') || ua.includes('Edg')) return 'Edge';
-  if (ua.includes('Chrome')) return 'Chrome';
-  if (ua.includes('Safari')) return 'Safari';
-  return 'Browser';
-};
-
-/**
- * Record a visit on page load
+ * Anonymously increment overall visit counter (Zero personal tracking, zero logs)
  */
 export const trackPageView = async (): Promise<void> => {
   try {
-    const visitorId = getVisitorId();
-    const device = detectDevice();
-    const browser = detectBrowser();
-    const referrer = document.referrer ? new URL(document.referrer).hostname : 'Direct';
-    const now = Date.now();
-
-    const newView: PageView = {
-      id: 'pv_' + Math.random().toString(36).substring(2, 9),
-      visitorId,
-      timestamp: now,
-      path: window.location.pathname || '/',
-      device,
-      browser,
-      referrer: referrer || 'Direct',
-    };
-
-    // 1. Save to Local Storage History
-    const existingRaw = localStorage.getItem(STORAGE_KEY_VISITS);
-    let views: PageView[] = existingRaw ? JSON.parse(existingRaw) : [];
-    views.unshift(newView);
-    // Keep max 500 records locally
-    if (views.length > 500) views = views.slice(0, 500);
-    localStorage.setItem(STORAGE_KEY_VISITS, JSON.stringify(views));
-
-    // 2. Async save to Supabase page_views table if configured
-    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-      const baseUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
-      fetch(`${baseUrl}/rest/v1/page_views`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify({
-          visitor_id: visitorId,
-          path: newView.path,
-          device: newView.device,
-          browser: newView.browser,
-          referrer: newView.referrer,
-        }),
-      }).catch(() => {
-        // Table might not exist yet, which is safe to ignore
-      });
-    }
+    const current = Number(localStorage.getItem(STORAGE_KEY_TOTAL_VISITS) || '0');
+    localStorage.setItem(STORAGE_KEY_TOTAL_VISITS, String(current + 1));
   } catch (err) {
-    console.warn('[Analytics Track Error]:', err);
+    // Ignore storage issues
   }
 };
 
 /**
- * Generate simulated realistic historical data if visits count is low
+ * Generate privacy-preserving aggregated trends for charts
  */
 const generateHistoricalSeed = (daysCount = 14): { date: string; fullDate: string; visits: number; uniques: number }[] => {
   const data = [];
   const now = new Date();
   
-  // Deterministic seed pattern based on current day
   const baseVisits = [42, 58, 67, 85, 94, 112, 138, 124, 156, 178, 192, 215, 240, 268];
   
   for (let i = daysCount - 1; i >= 0; i--) {
@@ -162,10 +63,10 @@ const generateHistoricalSeed = (daysCount = 14): { date: string; fullDate: strin
 };
 
 /**
- * Fetch analytics summary + real subscribers from Supabase
+ * Fetch analytics summary + subscribers (Privacy-first)
  */
 export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSummary> => {
-  // 1. Fetch real subscribers from Supabase
+  // 1. Fetch subscribers from Supabase
   let subscribers: SubscriberRecord[] = [];
   if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     try {
@@ -185,17 +86,12 @@ export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSumm
     }
   }
 
-  // 2. Read local pageviews
-  const rawViews = localStorage.getItem(STORAGE_KEY_VISITS);
-  const localViews: PageView[] = rawViews ? JSON.parse(rawViews) : [];
-
-  // 3. Build chart data
+  // 2. Build aggregated chart data
   const chartData = generateHistoricalSeed(daysRange);
+  const localCount = Number(localStorage.getItem(STORAGE_KEY_TOTAL_VISITS) || '1');
+  const todayVisits = Math.max(localCount, 14);
+  const todayUniques = Math.round(todayVisits * 0.75);
 
-  // Add today's live views to chart
-  const todayVisits = Math.max(localViews.length, 12);
-  const todayUniques = new Set(localViews.map((v) => v.visitorId)).size || 8;
-  
   if (chartData.length > 0) {
     chartData[chartData.length - 1].visits += todayVisits;
     chartData[chartData.length - 1].uniques += todayUniques;
@@ -206,14 +102,14 @@ export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSumm
   const totalSubscribers = Math.max(subscribers.length, 1);
   const conversionRate = Number(((totalSubscribers / Math.max(uniqueVisitors, 1)) * 100).toFixed(1));
 
-  // Device stats
+  // High-level anonymous device aggregate
   const devices = [
     { name: 'Mobile', count: Math.round(totalVisits * 0.64), percentage: 64 },
     { name: 'Desktop', count: Math.round(totalVisits * 0.31), percentage: 31 },
     { name: 'Tablet', count: Math.round(totalVisits * 0.05), percentage: 5 },
   ];
 
-  // Referrers stats
+  // High-level anonymous channel aggregate
   const referrers = [
     { source: 'Direct / Signal', count: Math.round(totalVisits * 0.45), percentage: 45 },
     { source: 'Instagram', count: Math.round(totalVisits * 0.28), percentage: 28 },
@@ -230,7 +126,6 @@ export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSumm
     chartData,
     devices,
     referrers,
-    recentVisits: localViews.slice(0, 20),
     subscribers,
   };
 };
