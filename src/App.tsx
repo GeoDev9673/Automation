@@ -7,75 +7,44 @@ import { MemoryCinemaSection } from './components/MemoryCinemaSection';
 import { SubscribeSection } from './components/SubscribeSection';
 import { FooterSection } from './components/FooterSection';
 import { SiteProtection } from './components/SiteProtection';
-import { AdminPanel } from './components/AdminPanel';
-import { AdminLogin } from './components/AdminLogin';
+import { AdminPage } from './pages/AdminPage';
 import { trackPageView } from './utils/analytics';
 
 export default function App() {
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAdminRoute, setIsAdminRoute] = useState<boolean>(() => {
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    return path.startsWith('/admin') || hash === '#admin';
+  });
 
   useEffect(() => {
-    // 1. Track Visitor Page View on Mount
-    trackPageView();
+    // 1. Track Visitor Page View on Mount (only for regular site visitors)
+    if (!isAdminRoute) {
+      trackPageView();
+    }
 
-    // 2. Check for #admin or ?admin in URL
-    const checkAdminUrl = () => {
-      const hash = window.location.hash;
-      const search = window.location.search;
-      if (hash === '#admin' || search.includes('admin=true') || search.includes('admin=1')) {
-        const isAuth = localStorage.getItem('paralife_admin_auth') === 'true';
-        if (isAuth) {
-          setIsAdminOpen(true);
-        } else {
-          setShowAdminLogin(true);
-        }
-      }
+    // 2. Listen to route changes
+    const handleRouteChange = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      setIsAdminRoute(path.startsWith('/admin') || hash === '#admin');
     };
-    checkAdminUrl();
-    window.addEventListener('hashchange', checkAdminUrl);
 
-    // 3. Keyboard Shortcut: Ctrl + Alt + A (or Cmd + Alt + A)
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'a' || e.key === 'A' || e.key === 'ф' || e.key === 'Ф')) {
-        e.preventDefault();
-        const isAuth = localStorage.getItem('paralife_admin_auth') === 'true';
-        if (isAuth) {
-          setIsAdminOpen(true);
-        } else {
-          setShowAdminLogin(true);
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('popstate', handleRouteChange);
+    window.addEventListener('hashchange', handleRouteChange);
 
     return () => {
-      window.removeEventListener('hashchange', checkAdminUrl);
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('popstate', handleRouteChange);
+      window.removeEventListener('hashchange', handleRouteChange);
     };
-  }, []);
+  }, [isAdminRoute]);
 
-  const handleOpenAdmin = () => {
-    const isAuth = localStorage.getItem('paralife_admin_auth') === 'true';
-    if (isAuth) {
-      setIsAdminOpen(true);
-    } else {
-      setShowAdminLogin(true);
-    }
-  };
+  // If on the /admin route, render the standalone Admin Page
+  if (isAdminRoute) {
+    return <AdminPage />;
+  }
 
-  const handleLoginSuccess = () => {
-    setShowAdminLogin(false);
-    setIsAdminOpen(true);
-  };
-
-  const handleCloseAdmin = () => {
-    setIsAdminOpen(false);
-    if (window.location.hash === '#admin') {
-      history.pushState('', document.title, window.location.pathname + window.location.search);
-    }
-  };
-
+  // Regular Public Website (100% clean, zero admin elements)
   return (
     <SiteProtection>
       <div className="w-full min-h-screen bg-[#121316] text-[#F2EEE8] selection:bg-[#FF2D85]/30 selection:text-[#F2EEE8]">
@@ -84,35 +53,24 @@ export default function App() {
 
         {/* MAIN EXPERIENCE CONTAINER */}
         <main className="w-full flex flex-col">
-          {/* 02 HERO WITH CINEMATIC SCREEN (Target of +MEMORY) */}
+          {/* 02 HERO WITH CINEMATIC SCREEN */}
           <HeroSection />
 
           {/* 03 ABOUT */}
           <AboutSection />
 
-          {/* 04 MUSIC (Target of +MUSIC) */}
+          {/* 04 MUSIC */}
           <MusicSection />
 
           {/* 05 MEMORY CINEMA */}
           <MemoryCinemaSection />
 
-          {/* 06 SUBSCRIBE (Target of +SUBSCRIBE) */}
+          {/* 06 SUBSCRIBE */}
           <SubscribeSection />
         </main>
 
-        {/* 08 FOOTER */}
-        <FooterSection onOpenAdmin={handleOpenAdmin} />
-
-        {/* ADMIN LOGIN GATE MODAL */}
-        {showAdminLogin && (
-          <AdminLogin
-            onSuccess={handleLoginSuccess}
-            onCancel={() => setShowAdminLogin(false)}
-          />
-        )}
-
-        {/* ADMIN ANALYTICS CONTROL CENTER */}
-        {isAdminOpen && <AdminPanel onClose={handleCloseAdmin} />}
+        {/* 07 FOOTER */}
+        <FooterSection />
       </div>
     </SiteProtection>
   );
