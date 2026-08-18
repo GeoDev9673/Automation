@@ -82,19 +82,6 @@ export const subscribeEmail = async (rawEmail: string): Promise<SubscribeResult>
     });
 
     if (response.ok) {
-      // Dispatch Styled Welcome Email via Google Apps Script (Fire-and-forget)
-      const GAS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzlr38zUzI2loNDk42xay9muhblmnK6V8Hdxs1S3rxyY4yEtEJ1MDxh360H0REOFZLEWg/exec';
-      try {
-        fetch(GAS_WEBHOOK_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: cleanEmail }),
-        }).catch((err) => console.warn('[Email Dispatch Notice]:', err));
-      } catch (e) {
-        console.warn('[Email Dispatch Error]:', e);
-      }
-
       return {
         success: true,
         message: 'Thank you for joining Paralife.',
