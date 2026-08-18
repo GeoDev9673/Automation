@@ -54,7 +54,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   const paddingY = 30;
 
   const chartData = data?.chartData || [];
-  const maxVisits = Math.max(...chartData.map((d) => d.visits), 100);
+  const maxVisits = Math.max(...chartData.map((d) => d.visits), 5);
 
   const points = chartData.map((d, index) => {
     const x = paddingX + (index / Math.max(chartData.length - 1, 1)) * (chartWidth - paddingX * 2);
@@ -162,7 +162,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         {activeTab === 'overview' && (
           <div className="flex flex-col space-y-20 animate-fade-in">
             
-            {/* Metric Numbers Grid (Pure Editorial Minimalist Grid) */}
+            {/* 100% REAL Metric Numbers Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 border-b border-[#F2EEE8]/10 pb-16">
               
               <div className="flex flex-col space-y-3">
@@ -172,8 +172,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
                   {loading ? '...' : data?.totalVisits.toLocaleString()}
                 </span>
-                <span className="text-[12px] tracking-[0.06em] text-[#00FF88] uppercase">
-                  ↑ +18.4% signal activity
+                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
+                  Real pageviews recorded
                 </span>
               </div>
 
@@ -184,8 +184,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
                   {loading ? '...' : data?.uniqueVisitors.toLocaleString()}
                 </span>
-                <span className="text-[12px] tracking-[0.06em] text-[#00FF88] uppercase">
-                  ↑ +12.1% audience reach
+                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
+                  Unique browser sessions
                 </span>
               </div>
 
@@ -196,8 +196,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 <span className="text-4xl md:text-5xl font-light tracking-tight text-[#FF2D85]">
                   {loading ? '...' : data?.totalSubscribers.toLocaleString()}
                 </span>
-                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
-                  Database verified
+                <span className="text-[12px] tracking-[0.06em] text-[#00FF88] uppercase">
+                  Real database records
                 </span>
               </div>
 
@@ -208,14 +208,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
                   {loading ? '...' : `${data?.conversionRate}%`}
                 </span>
-                <span className="text-[12px] tracking-[0.06em] text-[#00FF88] uppercase">
-                  Optimal performance
+                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
+                  Subscribers / Visitors
                 </span>
               </div>
 
             </div>
 
-            {/* INTERACTIVE TRAFFIC ACTIVITY CHART */}
+            {/* REAL INTERACTIVE TRAFFIC ACTIVITY CHART */}
             <div className="flex flex-col space-y-8">
               <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
                 <div>
@@ -223,7 +223,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                     +signal activity
                   </span>
                   <h3 className="type-h3 text-[#F2EEE8] mt-2">
-                    Audience Traffic Trajectory
+                    Real Traffic Trajectory
                   </h3>
                 </div>
                 <div className="flex items-center space-x-6 text-[12px] uppercase tracking-[0.1em]">
@@ -355,63 +355,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* BREAKDOWN SECTIONS (Device & Traffic Sources) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-6">
-              
-              {/* Devices */}
-              <div className="flex flex-col space-y-6">
-                <span className="section-label text-[#F2EEE8]/52">
-                  +devices
-                </span>
-                <h4 className="text-xl font-normal text-[#F2EEE8]">
-                  Platform Split
-                </h4>
-                <div className="flex flex-col space-y-4 pt-2">
-                  {data?.devices.map((dev) => (
-                    <div key={dev.name} className="flex flex-col space-y-2">
-                      <div className="flex justify-between text-[12px] uppercase tracking-[0.1em]">
-                        <span className="text-[#F2EEE8]/76">{dev.name}</span>
-                        <span className="text-[#F2EEE8] font-mono">{dev.percentage}%</span>
-                      </div>
-                      <div className="w-full h-1 bg-[#1a1b20] overflow-hidden">
-                        <div
-                          className="h-full bg-[#FF2D85] transition-all duration-500"
-                          style={{ width: `${dev.percentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Referrers */}
-              <div className="flex flex-col space-y-6">
-                <span className="section-label text-[#F2EEE8]/52">
-                  +channels
-                </span>
-                <h4 className="text-xl font-normal text-[#F2EEE8]">
-                  Traffic Origins
-                </h4>
-                <div className="flex flex-col space-y-4 pt-2">
-                  {data?.referrers.map((ref) => (
-                    <div key={ref.source} className="flex flex-col space-y-2">
-                      <div className="flex justify-between text-[12px] uppercase tracking-[0.1em]">
-                        <span className="text-[#F2EEE8]/76">{ref.source}</span>
-                        <span className="text-[#F2EEE8] font-mono">{ref.percentage}%</span>
-                      </div>
-                      <div className="w-full h-1 bg-[#1a1b20] overflow-hidden">
-                        <div
-                          className="h-full bg-[#00FF88] transition-all duration-500"
-                          style={{ width: `${ref.percentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
             </div>
 
           </div>

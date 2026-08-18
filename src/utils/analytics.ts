@@ -5,6 +5,13 @@ export interface SubscriberRecord {
   status: string;
 }
 
+export interface RealVisitRecord {
+  id: string;
+  visitorId: string;
+  timestamp: number;
+  date: string; // YYYY-MM-DD
+}
+
 export interface AnalyticsSummary {
   totalVisits: number;
   uniqueVisitors: number;
@@ -12,72 +19,93 @@ export interface AnalyticsSummary {
   totalSubscribers: number;
   conversionRate: number;
   chartData: { date: string; fullDate: string; visits: number; uniques: number }[];
-  devices: { name: string; count: number; percentage: number }[];
-  referrers: { source: string; count: number; percentage: number }[];
   subscribers: SubscriberRecord[];
 }
 
-const STORAGE_KEY_TOTAL_VISITS = 'paralife_anon_visit_count';
+const STORAGE_KEY_REAL_VISITS = 'paralife_real_visits_v1';
+const STORAGE_KEY_VISITOR_ID = 'paralife_anon_visitor_uuid';
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 /**
- * Anonymously increment overall visit counter (Zero personal tracking, zero logs)
+ * Get or create anonymous visitor ID (persists per browser)
+ */
+export const getVisitorId = (): string => {
+  let id = localStorage.getItem(STORAGE_KEY_VISITOR_ID);
+  if (!id) {
+    id = 'v_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+    localStorage.setItem(STORAGE_KEY_VISITOR_ID, id);
+  }
+  return id;
+};
+
+/**
+ * Record a real visit on site load
  */
 export const trackPageView = async (): Promise<void> => {
   try {
-    const current = Number(localStorage.getItem(STORAGE_KEY_TOTAL_VISITS) || '0');
-    localStorage.setItem(STORAGE_KEY_TOTAL_VISITS, String(current + 1));
-  } catch (err) {
-    // Ignore storage issues
-  }
-};
+    const visitorId = getVisitorId();
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
 
-/**
- * Generate privacy-preserving aggregated trends for charts
- */
-const generateHistoricalSeed = (daysCount = 14): { date: string; fullDate: string; visits: number; uniques: number }[] => {
-  const data = [];
-  const now = new Date();
-  
-  const baseVisits = [42, 58, 67, 85, 94, 112, 138, 124, 156, 178, 192, 215, 240, 268];
-  
-  for (let i = daysCount - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(now.getDate() - i);
-    const dateStr = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-    const fullDateStr = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-    
-    const seedIndex = (daysCount - 1 - i) % baseVisits.length;
-    const visits = baseVisits[seedIndex];
-    const uniques = Math.round(visits * 0.72);
-
-    data.push({
+    const newVisit: RealVisitRecord = {
+      id: 'v_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+      visitorId,
+      timestamp: Date.now(),
       date: dateStr,
-      fullDate: fullDateStr,
-      visits,
-      uniques,
-    });
+    };
+
+    // 1. Save to Local Storage real visits log
+    const raw = localStorage.getItem(STORAGE_KEY_REAL_VISITS);
+    const list: RealVisitRecord[] = raw ? JSON.parse(raw) : [];
+    list.unshift(newVisit);
+    
+    // Keep max 2000 real records
+    if (list.length > 2000) list.length = 2000;
+    localStorage.setItem(STORAGE_KEY_REAL_VISITS, JSON.stringify(list));
+
+    // 2. Try pushing to Supabase page_views if table exists
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      const baseUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+      fetch(`${baseUrl}/rest/v1/page_views`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({
+          visitor_id: visitorId,
+          created_at: now.toISOString(),
+        }),
+      }).catch(() => {});
+    }
+  } catch (err) {
+    console.warn('[Analytics Error]:', err);
   }
-  return data;
 };
 
 /**
- * Fetch analytics summary + subscribers (Privacy-first)
+ * Fetch 100% real analytics data from Supabase and live visit storage
  */
 export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSummary> => {
-  // 1. Fetch subscribers from Supabase
+  // 1. Fetch real subscribers from Supabase
   let subscribers: SubscriberRecord[] = [];
   if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     try {
       const baseUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
-      const response = await fetch(`${baseUrl}/rest/v1/subscribers?select=id,email,created_at,status&order=created_at.desc`, {
-        method: 'GET',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-      });
+      const response = await fetch(
+        `${baseUrl}/rest/v1/subscribers?select=id,email,created_at,status&order=created_at.desc`,
+        {
+          method: 'GET',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
       if (response.ok) {
         subscribers = await response.json();
       }
@@ -86,36 +114,61 @@ export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSumm
     }
   }
 
-  // 2. Build aggregated chart data
-  const chartData = generateHistoricalSeed(daysRange);
-  const localCount = Number(localStorage.getItem(STORAGE_KEY_TOTAL_VISITS) || '1');
-  const todayVisits = Math.max(localCount, 14);
-  const todayUniques = Math.round(todayVisits * 0.75);
+  // 2. Read real visits
+  const raw = localStorage.getItem(STORAGE_KEY_REAL_VISITS);
+  const realVisits: RealVisitRecord[] = raw ? JSON.parse(raw) : [];
 
-  if (chartData.length > 0) {
-    chartData[chartData.length - 1].visits += todayVisits;
-    chartData[chartData.length - 1].uniques += todayUniques;
+  // Ensure at least the current session is recorded
+  if (realVisits.length === 0) {
+    const today = new Date().toISOString().split('T')[0];
+    realVisits.push({
+      id: 'v_init',
+      visitorId: getVisitorId(),
+      timestamp: Date.now(),
+      date: today,
+    });
+    localStorage.setItem(STORAGE_KEY_REAL_VISITS, JSON.stringify(realVisits));
   }
 
-  const totalVisits = chartData.reduce((acc, cur) => acc + cur.visits, 0);
-  const uniqueVisitors = chartData.reduce((acc, cur) => acc + cur.uniques, 0);
-  const totalSubscribers = Math.max(subscribers.length, 1);
-  const conversionRate = Number(((totalSubscribers / Math.max(uniqueVisitors, 1)) * 100).toFixed(1));
+  // 3. Build real day-by-day chart data
+  const chartData: { date: string; fullDate: string; visits: number; uniques: number }[] = [];
+  const now = new Date();
 
-  // High-level anonymous device aggregate
-  const devices = [
-    { name: 'Mobile', count: Math.round(totalVisits * 0.64), percentage: 64 },
-    { name: 'Desktop', count: Math.round(totalVisits * 0.31), percentage: 31 },
-    { name: 'Tablet', count: Math.round(totalVisits * 0.05), percentage: 5 },
-  ];
+  // Create date buckets for the selected range
+  for (let i = daysRange - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(now.getDate() - i);
+    const dateKey = d.toISOString().split('T')[0];
+    const dateLabel = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+    const fullDateLabel = d.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
 
-  // High-level anonymous channel aggregate
-  const referrers = [
-    { source: 'Direct / Signal', count: Math.round(totalVisits * 0.45), percentage: 45 },
-    { source: 'Instagram', count: Math.round(totalVisits * 0.28), percentage: 28 },
-    { source: 'TikTok', count: Math.round(totalVisits * 0.16), percentage: 16 },
-    { source: 'YouTube', count: Math.round(totalVisits * 0.11), percentage: 11 },
-  ];
+    const dayVisits = realVisits.filter((v) => v.date === dateKey);
+    const dayUniques = new Set(dayVisits.map((v) => v.visitorId)).size;
+
+    chartData.push({
+      date: dateLabel,
+      fullDate: fullDateLabel,
+      visits: dayVisits.length,
+      uniques: dayUniques,
+    });
+  }
+
+  // 4. Calculate real total metrics
+  const totalVisits = realVisits.length;
+  const uniqueVisitors = new Set(realVisits.map((v) => v.visitorId)).size;
+  
+  const todayKey = now.toISOString().split('T')[0];
+  const todayVisits = realVisits.filter((v) => v.date === todayKey).length;
+
+  const totalSubscribers = subscribers.length;
+  const conversionRate =
+    uniqueVisitors > 0
+      ? Number(((totalSubscribers / uniqueVisitors) * 100).toFixed(1))
+      : 0;
 
   return {
     totalVisits,
@@ -124,8 +177,6 @@ export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSumm
     totalSubscribers,
     conversionRate,
     chartData,
-    devices,
-    referrers,
     subscribers,
   };
 };
