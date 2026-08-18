@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import logoImg from '../assets/images/logo.png';
+import { PARALIFE_META } from '../data/paralifeData';
 
 interface AdminLoginProps {
   onSuccess: () => void;
@@ -23,62 +25,89 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d0e11]/95 backdrop-blur-md px-4 animate-fade-in">
-      <div className="w-full max-w-sm bg-[#141519] border border-[#F2EEE8]/12 p-8 rounded-xl shadow-2xl flex flex-col items-center text-center space-y-6">
-        
-        {/* Signal Key Icon */}
-        <div className="w-12 h-12 rounded-full bg-[#1e2027] border border-[#FF2D85]/40 flex items-center justify-center text-[#FF2D85]">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        </div>
-
-        <div>
-          <h3 className="text-lg font-medium tracking-wider uppercase text-white">
-            PARALIFE ACCESS
-          </h3>
-          <p className="text-[12px] text-[#F2EEE8]/50 mt-1">
-            Enter Master Access Key
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="w-full space-y-4">
-          <input
-            type="password"
-            autoFocus
-            value={accessKey}
-            onChange={(e) => {
-              setAccessKey(e.target.value);
-              if (error) setError(false);
-            }}
-            placeholder="ACCESS KEY"
-            className="w-full bg-[#0e0f12] border border-[#F2EEE8]/15 focus:border-[#FF2D85] text-center text-white py-3 px-4 rounded text-[14px] tracking-[0.15em] focus:outline-none transition-colors"
+    <div className="min-h-screen w-full bg-[#121316] text-[#F2EEE8] flex flex-col justify-between py-12 px-6 md:px-12 selection:bg-[#FF2D85]/30">
+      
+      {/* Top Header */}
+      <header className="max-w-[1440px] w-full mx-auto flex items-center justify-between">
+        <a href="/" className="hover:opacity-80 transition-opacity">
+          <img
+            src={logoImg}
+            alt={PARALIFE_META.brandName}
+            className="h-8 md:h-10 w-auto object-contain"
           />
+        </a>
+        <span className="text-[12px] tracking-[0.14em] uppercase text-[#FF2D85] font-medium">
+          +access
+        </span>
+      </header>
+
+      {/* Main Login Card */}
+      <main className="max-w-[480px] w-full mx-auto my-auto flex flex-col items-center text-center space-y-10">
+        
+        {/* Editorial Subtitle */}
+        <div className="flex flex-col items-center space-y-2">
+          <span className="text-[11px] tracking-[0.2em] uppercase text-[#F2EEE8]/52 font-medium">
+            FREQUENCY CONTROL
+          </span>
+          <h2 className="type-h2 text-[#F2EEE8] font-normal leading-[1.08]">
+            Enter Signal Key
+          </h2>
+        </div>
+
+        {/* Minimal Underline Form (Identical to Website Style) */}
+        <form onSubmit={handleSubmit} className="w-full flex flex-col items-center space-y-8">
+          <div className="w-full relative flex items-center border-b border-[#F2EEE8]/30 focus-within:border-[#FF2D85] transition-colors duration-300">
+            <input
+              type="password"
+              autoFocus
+              value={accessKey}
+              onChange={(e) => {
+                setAccessKey(e.target.value);
+                if (error) setError(false);
+              }}
+              placeholder="ENTER ACCESS KEY"
+              className="w-full bg-transparent py-4 text-center text-[15px] md:text-[16px] text-[#F2EEE8] placeholder-[#F2EEE8]/30 focus:outline-none tracking-[0.18em] uppercase"
+            />
+          </div>
 
           {error && (
-            <p className="text-[12px] text-[#FF4565] animate-fade-in">
-              Access Denied. Invalid key.
+            <p className="text-[13px] tracking-[0.06em] text-[#C99B9B] animate-fade-in">
+              Access key incorrect. Signal rejected.
             </p>
           )}
 
-          <div className="flex space-x-3 pt-2">
+          {/* Action Buttons in Brand Style */}
+          <div className="flex items-center space-x-6 pt-2">
             <button
               type="button"
               onClick={onCancel}
-              className="w-1/2 py-2.5 text-[12px] uppercase tracking-wider text-[#F2EEE8]/60 hover:text-white bg-[#1a1b22] rounded transition-colors"
+              className="text-[13px] tracking-[0.1em] uppercase text-[#F2EEE8]/52 hover:text-[#F2EEE8] transition-colors duration-200 cursor-pointer font-medium"
             >
-              Cancel
+              ← return
             </button>
+            
             <button
               type="submit"
-              className="w-1/2 py-2.5 text-[12px] uppercase tracking-wider text-white font-semibold bg-[#FF2D85] hover:bg-[#ff1275] rounded transition-colors"
+              className="py-3 px-8 text-[13px] tracking-[0.12em] uppercase bg-[#FF2D85] hover:bg-[#ff1275] text-white font-medium transition-all duration-200 cursor-pointer shadow-lg shadow-[#FF2D85]/20"
             >
-              Unlock →
+              +unlock
             </button>
           </div>
         </form>
 
-      </div>
+        {/* Editorial Quote */}
+        <p className="text-[12px] tracking-[0.04em] text-[#F2EEE8]/40 italic">
+          “Some memories wait until you are ready.”
+        </p>
+
+      </main>
+
+      {/* Footer */}
+      <footer className="max-w-[1440px] w-full mx-auto flex items-center justify-between text-[12px] tracking-[0.1em] text-[#F2EEE8]/40 uppercase">
+        <span>© PARALIFE</span>
+        <span>Less Noise. More Life.</span>
+      </footer>
+
     </div>
   );
 };

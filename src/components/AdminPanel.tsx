@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAnalyticsSummary, AnalyticsSummary } from '../utils/analytics';
+import logoImg from '../assets/images/logo.png';
+import { PARALIFE_META } from '../data/paralifeData';
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -29,7 +31,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     loadData(daysRange);
   }, [daysRange]);
 
-  // Export Subscribers to CSV
   const handleExportCSV = () => {
     if (!data || !data.subscribers.length) return;
     const csvHeader = 'ID,Email,Created At,Status\n';
@@ -47,22 +48,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   };
 
   // SVG Chart Dimensions
-  const chartWidth = 760;
-  const chartHeight = 240;
+  const chartWidth = 840;
+  const chartHeight = 260;
   const paddingX = 40;
   const paddingY = 30;
 
   const chartData = data?.chartData || [];
   const maxVisits = Math.max(...chartData.map((d) => d.visits), 100);
 
-  // Compute SVG Points
   const points = chartData.map((d, index) => {
     const x = paddingX + (index / Math.max(chartData.length - 1, 1)) * (chartWidth - paddingX * 2);
     const y = chartHeight - paddingY - (d.visits / maxVisits) * (chartHeight - paddingY * 2);
     return { x, y, ...d };
   });
 
-  // Construct smooth SVG path
   const linePath = points.reduce((acc, point, i, arr) => {
     if (i === 0) return `M ${point.x} ${point.y}`;
     const prev = arr[i - 1];
@@ -80,210 +79,184 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     : '';
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0e0f12]/95 backdrop-blur-md text-[#F2EEE8] font-sans animate-fade-in">
-      <div className="min-h-screen max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col space-y-8">
-        
-        {/* TOP BAR */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#F2EEE8]/10">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00FF88] animate-pulse"></span>
-              <span className="text-[12px] tracking-[0.2em] uppercase font-bold text-[#FF2D85]">
-                PARALIFE // CONTROL CENTER
-              </span>
-            </div>
-            <span className="text-[12px] text-[#F2EEE8]/40">•</span>
-            <span className="text-[12px] text-[#F2EEE8]/60 uppercase tracking-widest">
-              Live Signal Analytics
+    <div className="min-h-screen w-full bg-[#121316] text-[#F2EEE8] selection:bg-[#FF2D85]/30">
+      
+      {/* Top Brand Header */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-[#121316]/95 backdrop-blur-sm border-b border-[#F2EEE8]/10 py-6 px-6 md:px-12">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between">
+          
+          <div className="flex items-center space-x-6">
+            <a href="/" className="hover:opacity-80 transition-opacity">
+              <img
+                src={logoImg}
+                alt={PARALIFE_META.brandName}
+                className="h-8 md:h-10 w-auto object-contain"
+              />
+            </a>
+            <span className="section-label text-[#FF2D85] cursor-default hidden sm:inline-block">
+              +control
             </span>
           </div>
 
-          <div className="flex items-center space-x-3">
-            {/* Days Filter */}
-            <div className="flex items-center bg-[#18191e] border border-[#F2EEE8]/10 rounded p-0.5">
+          <div className="flex items-center space-x-6 md:space-x-8">
+            {/* Range Filters */}
+            <div className="flex items-center space-x-4 text-[12px] uppercase tracking-[0.1em]">
               {[7, 14, 30].map((days) => (
                 <button
                   key={days}
                   onClick={() => setDaysRange(days)}
-                  className={`px-3 py-1.5 text-[11px] uppercase tracking-wider font-medium rounded transition-colors ${
-                    daysRange === days
-                      ? 'bg-[#FF2D85] text-white shadow-sm'
-                      : 'text-[#F2EEE8]/60 hover:text-white'
+                  className={`transition-colors cursor-pointer ${
+                    daysRange === days ? 'text-[#FF2D85] font-semibold' : 'text-[#F2EEE8]/52 hover:text-[#F2EEE8]'
                   }`}
                 >
-                  {days}d
+                  +{days}d
                 </button>
               ))}
             </div>
 
-            {/* Refresh Button */}
+            {/* Refresh */}
             <button
               onClick={() => loadData(daysRange)}
-              title="Refresh Data"
-              className="px-3 py-1.5 text-[11px] uppercase tracking-wider bg-[#18191e] border border-[#F2EEE8]/10 hover:border-[#FF2D85] text-[#F2EEE8]/80 hover:text-white rounded transition-colors"
+              className="text-[12px] uppercase tracking-[0.1em] text-[#F2EEE8]/52 hover:text-[#FF2D85] transition-colors cursor-pointer hidden sm:inline-block"
             >
-              ↻ Refresh
+              +refresh
             </button>
 
-            {/* Exit / Close */}
+            {/* Exit to Site */}
             <button
               onClick={onClose}
-              className="px-4 py-1.5 text-[11px] uppercase tracking-wider bg-[#22242b] hover:bg-[#FF2D85] text-white font-medium rounded transition-colors"
+              className="text-[12px] uppercase tracking-[0.1em] text-[#F2EEE8]/76 hover:text-[#FF2D85] transition-colors cursor-pointer font-medium"
             >
-              ✕ Close
+              ← return
             </button>
           </div>
-        </header>
 
-        {/* NAVIGATION TABS */}
-        <div className="flex border-b border-[#F2EEE8]/10 space-x-6">
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <main className="max-w-[1440px] mx-auto px-6 md:px-12 pt-32 pb-24 flex flex-col space-y-16">
+        
+        {/* Navigation Tabs */}
+        <div className="flex items-center space-x-10 border-b border-[#F2EEE8]/10 pb-4">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`pb-3 text-[13px] uppercase tracking-widest font-medium border-b-2 transition-colors ${
-              activeTab === 'overview'
-                ? 'border-[#FF2D85] text-white'
-                : 'border-transparent text-[#F2EEE8]/50 hover:text-[#F2EEE8]'
+            className={`text-[13px] tracking-[0.1em] uppercase transition-colors cursor-pointer font-medium ${
+              activeTab === 'overview' ? 'text-[#FF2D85]' : 'text-[#F2EEE8]/52 hover:text-[#F2EEE8]'
             }`}
           >
-            Overview & Graphs
+            +analytics
           </button>
+          
           <button
             onClick={() => setActiveTab('subscribers')}
-            className={`pb-3 text-[13px] uppercase tracking-widest font-medium border-b-2 transition-colors flex items-center space-x-2 ${
-              activeTab === 'subscribers'
-                ? 'border-[#FF2D85] text-white'
-                : 'border-transparent text-[#F2EEE8]/50 hover:text-[#F2EEE8]'
+            className={`text-[13px] tracking-[0.1em] uppercase transition-colors cursor-pointer font-medium flex items-center space-x-2 ${
+              activeTab === 'subscribers' ? 'text-[#FF2D85]' : 'text-[#F2EEE8]/52 hover:text-[#F2EEE8]'
             }`}
           >
-            <span>Subscribers</span>
-            <span className="text-[10px] bg-[#FF2D85]/20 text-[#FF2D85] px-1.5 py-0.5 rounded">
+            <span>+subscribers</span>
+            <span className="text-[10px] text-[#FF2D85] border border-[#FF2D85]/40 px-1.5 py-0.2 rounded-full">
               {data?.subscribers.length || 0}
             </span>
           </button>
         </div>
 
-        {/* TAB CONTENT: OVERVIEW */}
+        {/* TAB 1: OVERVIEW & CHARTS */}
         {activeTab === 'overview' && (
-          <div className="space-y-8 animate-fade-in">
+          <div className="flex flex-col space-y-20 animate-fade-in">
             
-            {/* STATS METRIC CARDS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Metric Numbers Grid (Pure Editorial Minimalist Grid) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 border-b border-[#F2EEE8]/10 pb-16">
               
-              <div className="bg-[#141519] border border-[#F2EEE8]/10 p-5 rounded-lg flex flex-col justify-between hover:border-[#FF2D85]/40 transition-colors">
-                <span className="text-[11px] uppercase tracking-[0.15em] text-[#F2EEE8]/50 font-medium">
-                  Total Visits
+              <div className="flex flex-col space-y-3">
+                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
+                  TOTAL VISITS
                 </span>
-                <div className="my-2">
-                  <span className="text-3xl font-light text-white tracking-tight">
-                    {loading ? '...' : data?.totalVisits.toLocaleString()}
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#00FF88] flex items-center space-x-1">
-                  <span>↑ +18.4%</span>
-                  <span className="text-[#F2EEE8]/40">vs last period</span>
+                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
+                  {loading ? '...' : data?.totalVisits.toLocaleString()}
+                </span>
+                <span className="text-[12px] tracking-[0.06em] text-[#00FF88] uppercase">
+                  ↑ +18.4% signal activity
                 </span>
               </div>
 
-              <div className="bg-[#141519] border border-[#F2EEE8]/10 p-5 rounded-lg flex flex-col justify-between hover:border-[#FF2D85]/40 transition-colors">
-                <span className="text-[11px] uppercase tracking-[0.15em] text-[#F2EEE8]/50 font-medium">
-                  Unique Visitors
+              <div className="flex flex-col space-y-3">
+                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
+                  UNIQUE VISITORS
                 </span>
-                <div className="my-2">
-                  <span className="text-3xl font-light text-white tracking-tight">
-                    {loading ? '...' : data?.uniqueVisitors.toLocaleString()}
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#00FF88] flex items-center space-x-1">
-                  <span>↑ +12.1%</span>
-                  <span className="text-[#F2EEE8]/40">reach</span>
+                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
+                  {loading ? '...' : data?.uniqueVisitors.toLocaleString()}
+                </span>
+                <span className="text-[12px] tracking-[0.06em] text-[#00FF88] uppercase">
+                  ↑ +12.1% audience reach
                 </span>
               </div>
 
-              <div className="bg-[#141519] border border-[#F2EEE8]/10 p-5 rounded-lg flex flex-col justify-between hover:border-[#FF2D85]/40 transition-colors">
-                <span className="text-[11px] uppercase tracking-[0.15em] text-[#F2EEE8]/50 font-medium">
-                  Subscribers
+              <div className="flex flex-col space-y-3">
+                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
+                  SIGNAL SUBSCRIBERS
                 </span>
-                <div className="my-2">
-                  <span className="text-3xl font-light text-[#FF2D85] tracking-tight">
-                    {loading ? '...' : data?.totalSubscribers.toLocaleString()}
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#F2EEE8]/60">
-                  Active in Signal
+                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#FF2D85]">
+                  {loading ? '...' : data?.totalSubscribers.toLocaleString()}
+                </span>
+                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
+                  Database verified
                 </span>
               </div>
 
-              <div className="bg-[#141519] border border-[#F2EEE8]/10 p-5 rounded-lg flex flex-col justify-between hover:border-[#FF2D85]/40 transition-colors">
-                <span className="text-[11px] uppercase tracking-[0.15em] text-[#F2EEE8]/50 font-medium">
-                  Conversion Rate
+              <div className="flex flex-col space-y-3">
+                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
+                  CONVERSION RATE
                 </span>
-                <div className="my-2">
-                  <span className="text-3xl font-light text-white tracking-tight">
-                    {loading ? '...' : `${data?.conversionRate}%`}
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#00FF88]">
-                  High engagement
+                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
+                  {loading ? '...' : `${data?.conversionRate}%`}
                 </span>
-              </div>
-
-              <div className="bg-[#141519] border border-[#F2EEE8]/10 p-5 rounded-lg flex flex-col justify-between hover:border-[#FF2D85]/40 transition-colors">
-                <span className="text-[11px] uppercase tracking-[0.15em] text-[#F2EEE8]/50 font-medium">
-                  Today's Pulse
-                </span>
-                <div className="my-2">
-                  <span className="text-3xl font-light text-white tracking-tight">
-                    {loading ? '...' : data?.todayVisits}
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#FF2D85] flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF2D85] animate-ping"></span>
-                  <span>Live online</span>
+                <span className="text-[12px] tracking-[0.06em] text-[#00FF88] uppercase">
+                  Optimal performance
                 </span>
               </div>
 
             </div>
 
-            {/* INTERACTIVE ANALYTICS CHART */}
-            <div className="bg-[#141519] border border-[#F2EEE8]/10 p-6 rounded-lg relative">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 gap-2">
+            {/* INTERACTIVE TRAFFIC ACTIVITY CHART */}
+            <div className="flex flex-col space-y-8">
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-normal tracking-wide text-white">
-                    Signal Traffic Activity
+                  <span className="section-label text-[#F2EEE8]/52">
+                    +signal activity
+                  </span>
+                  <h3 className="type-h3 text-[#F2EEE8] mt-2">
+                    Audience Traffic Trajectory
                   </h3>
-                  <p className="text-[12px] text-[#F2EEE8]/50 mt-0.5">
-                    Daily website visits & unique reach over the last {daysRange} days
-                  </p>
                 </div>
-                <div className="flex items-center space-x-4 text-[12px]">
+                <div className="flex items-center space-x-6 text-[12px] uppercase tracking-[0.1em]">
                   <div className="flex items-center space-x-2">
-                    <span className="w-3 h-3 rounded bg-[#FF2D85]"></span>
-                    <span className="text-[#F2EEE8]/70">Visits</span>
+                    <span className="w-2 h-2 rounded-full bg-[#FF2D85]"></span>
+                    <span className="text-[#F2EEE8]/76">Total Visits</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="w-3 h-3 rounded bg-[#00FF88]/70"></span>
-                    <span className="text-[#F2EEE8]/70">Uniques</span>
+                    <span className="w-2 h-2 rounded-full bg-[#00FF88]"></span>
+                    <span className="text-[#F2EEE8]/76">Uniques</span>
                   </div>
                 </div>
               </div>
 
-              {/* SVG GRAPH */}
-              <div className="w-full overflow-x-auto relative">
+              {/* Chart Canvas */}
+              <div className="w-full bg-[#16171c] border border-[#F2EEE8]/10 p-6 md:p-8 relative overflow-x-auto">
                 <svg
                   viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                  className="w-full h-auto min-w-[500px]"
+                  className="w-full h-auto min-w-[580px]"
                   style={{ overflow: 'visible' }}
                 >
                   <defs>
-                    {/* Pink Gradient for Area Fill */}
-                    <linearGradient id="pinkGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FF2D85" stopOpacity="0.32" />
+                    <linearGradient id="paralifeGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#FF2D85" stopOpacity="0.25" />
                       <stop offset="100%" stopColor="#FF2D85" stopOpacity="0.00" />
                     </linearGradient>
                   </defs>
 
                   {/* Grid Lines */}
-                  {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+                  {[0, 0.33, 0.66, 1].map((ratio) => {
                     const y = chartHeight - paddingY - ratio * (chartHeight - paddingY * 2);
                     const val = Math.round(ratio * maxVisits);
                     return (
@@ -293,15 +266,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                           y1={y}
                           x2={chartWidth - paddingX}
                           y2={y}
-                          stroke="rgba(242, 238, 232, 0.08)"
-                          strokeDasharray="4 4"
+                          stroke="rgba(242, 238, 232, 0.06)"
                         />
                         <text
-                          x={paddingX - 10}
+                          x={paddingX - 12}
                           y={y + 3}
                           fill="rgba(242, 238, 232, 0.35)"
-                          fontSize="9"
+                          fontSize="10"
                           textAnchor="end"
+                          className="font-mono"
                         >
                           {val}
                         </text>
@@ -309,21 +282,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                     );
                   })}
 
-                  {/* Area Fill */}
-                  {areaPath && <path d={areaPath} fill="url(#pinkGradient)" />}
+                  {/* Pink Fill Area */}
+                  {areaPath && <path d={areaPath} fill="url(#paralifeGradient)" />}
 
-                  {/* Main Curved Line */}
+                  {/* Main Pink Wave */}
                   {linePath && (
                     <path
                       d={linePath}
                       fill="none"
                       stroke="#FF2D85"
-                      strokeWidth="2.5"
+                      strokeWidth="2"
                       strokeLinecap="round"
                     />
                   )}
 
-                  {/* Data Points */}
+                  {/* Interactive Nodes */}
                   {points.map((p, idx) => (
                     <g key={idx}>
                       <circle
@@ -333,7 +306,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                         fill="#121316"
                         stroke="#FF2D85"
                         strokeWidth="2"
-                        className="cursor-pointer hover:r-6 transition-all"
+                        className="cursor-pointer hover:r-6 transition-all duration-150"
                         onMouseEnter={() =>
                           setHoveredPoint({
                             x: p.x,
@@ -345,16 +318,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                         }
                         onMouseLeave={() => setHoveredPoint(null)}
                       />
-                      {/* Date label at bottom */}
                       {(idx === 0 ||
                         idx === Math.floor(points.length / 2) ||
                         idx === points.length - 1) && (
                         <text
                           x={p.x}
-                          y={chartHeight - 6}
-                          fill="rgba(242, 238, 232, 0.5)"
+                          y={chartHeight - 4}
+                          fill="rgba(242, 238, 232, 0.45)"
                           fontSize="10"
                           textAnchor="middle"
+                          className="uppercase tracking-wider"
                         >
                           {p.date}
                         </text>
@@ -366,41 +339,48 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 {/* Floating Tooltip */}
                 {hoveredPoint && (
                   <div
-                    className="absolute z-20 pointer-events-none bg-[#1a1b22] border border-[#FF2D85]/60 px-3 py-2 rounded shadow-2xl text-[12px] flex flex-col space-y-1"
+                    className="absolute z-20 pointer-events-none bg-[#121316] border border-[#FF2D85]/80 px-4 py-2.5 shadow-2xl text-[12px] flex flex-col space-y-1"
                     style={{
                       left: `${(hoveredPoint.x / chartWidth) * 100}%`,
-                      top: `${(hoveredPoint.y / chartHeight) * 100 - 30}%`,
+                      top: `${(hoveredPoint.y / chartHeight) * 100 - 25}%`,
                       transform: 'translate(-50%, -100%)',
                     }}
                   >
-                    <span className="font-semibold text-white">{hoveredPoint.date}</span>
-                    <span className="text-[#FF2D85]">Visits: {hoveredPoint.visits}</span>
-                    <span className="text-[#00FF88]">Unique: {hoveredPoint.uniques}</span>
+                    <span className="font-medium text-[#F2EEE8] tracking-wider uppercase">
+                      {hoveredPoint.date}
+                    </span>
+                    <span className="text-[#FF2D85] font-mono">
+                      Visits: {hoveredPoint.visits}
+                    </span>
+                    <span className="text-[#00FF88] font-mono">
+                      Unique: {hoveredPoint.uniques}
+                    </span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* BREAKDOWNS: DEVICES & REFERRERS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* BREAKDOWN SECTIONS (Device & Traffic Sources) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-6">
               
-              {/* Device Split */}
-              <div className="bg-[#141519] border border-[#F2EEE8]/10 p-6 rounded-lg">
-                <h4 className="text-[14px] uppercase tracking-wider font-medium text-white mb-4">
-                  Device Distribution
+              {/* Devices */}
+              <div className="flex flex-col space-y-6">
+                <span className="section-label text-[#F2EEE8]/52">
+                  +devices
+                </span>
+                <h4 className="text-xl font-normal text-[#F2EEE8]">
+                  Platform Split
                 </h4>
-                <div className="space-y-4">
+                <div className="flex flex-col space-y-4 pt-2">
                   {data?.devices.map((dev) => (
-                    <div key={dev.name} className="space-y-1.5">
-                      <div className="flex justify-between text-[12px]">
-                        <span className="text-[#F2EEE8]/70">{dev.name}</span>
-                        <span className="text-white font-medium">
-                          {dev.percentage}% ({dev.count.toLocaleString()})
-                        </span>
+                    <div key={dev.name} className="flex flex-col space-y-2">
+                      <div className="flex justify-between text-[12px] uppercase tracking-[0.1em]">
+                        <span className="text-[#F2EEE8]/76">{dev.name}</span>
+                        <span className="text-[#F2EEE8] font-mono">{dev.percentage}%</span>
                       </div>
-                      <div className="w-full h-2 bg-[#1c1e24] rounded-full overflow-hidden">
+                      <div className="w-full h-1 bg-[#1a1b20] overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-[#FF2D85] to-[#FF6BA8] rounded-full"
+                          className="h-full bg-[#FF2D85] transition-all duration-500"
                           style={{ width: `${dev.percentage}%` }}
                         ></div>
                       </div>
@@ -409,23 +389,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 </div>
               </div>
 
-              {/* Traffic Sources */}
-              <div className="bg-[#141519] border border-[#F2EEE8]/10 p-6 rounded-lg">
-                <h4 className="text-[14px] uppercase tracking-wider font-medium text-white mb-4">
-                  Traffic Sources
+              {/* Referrers */}
+              <div className="flex flex-col space-y-6">
+                <span className="section-label text-[#F2EEE8]/52">
+                  +channels
+                </span>
+                <h4 className="text-xl font-normal text-[#F2EEE8]">
+                  Traffic Origins
                 </h4>
-                <div className="space-y-4">
+                <div className="flex flex-col space-y-4 pt-2">
                   {data?.referrers.map((ref) => (
-                    <div key={ref.source} className="space-y-1.5">
-                      <div className="flex justify-between text-[12px]">
-                        <span className="text-[#F2EEE8]/70">{ref.source}</span>
-                        <span className="text-white font-medium">
-                          {ref.percentage}% ({ref.count.toLocaleString()})
-                        </span>
+                    <div key={ref.source} className="flex flex-col space-y-2">
+                      <div className="flex justify-between text-[12px] uppercase tracking-[0.1em]">
+                        <span className="text-[#F2EEE8]/76">{ref.source}</span>
+                        <span className="text-[#F2EEE8] font-mono">{ref.percentage}%</span>
                       </div>
-                      <div className="w-full h-2 bg-[#1c1e24] rounded-full overflow-hidden">
+                      <div className="w-full h-1 bg-[#1a1b20] overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-[#00FF88] to-[#00D1FF] rounded-full"
+                          className="h-full bg-[#00FF88] transition-all duration-500"
                           style={{ width: `${ref.percentage}%` }}
                         ></div>
                       </div>
@@ -439,53 +420,51 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
           </div>
         )}
 
-        {/* TAB CONTENT: SUBSCRIBERS TABLE */}
+        {/* TAB 2: SUBSCRIBERS TABLE */}
         {activeTab === 'subscribers' && (
-          <div className="bg-[#141519] border border-[#F2EEE8]/10 p-6 rounded-lg space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between pb-4 border-b border-[#F2EEE8]/10">
+          <div className="flex flex-col space-y-8 animate-fade-in">
+            <div className="flex items-center justify-between border-b border-[#F2EEE8]/10 pb-6">
               <div>
-                <h3 className="text-base font-normal text-white">Signal Subscribers</h3>
-                <p className="text-[12px] text-[#F2EEE8]/50">
-                  Real subscriber records pulled directly from Supabase
-                </p>
+                <span className="section-label text-[#F2EEE8]/52">+database</span>
+                <h3 className="type-h3 text-[#F2EEE8] mt-1">Verified Signal Subscribers</h3>
               </div>
               <button
                 onClick={handleExportCSV}
-                className="px-3 py-1.5 text-[11px] uppercase tracking-wider bg-[#FF2D85] hover:bg-[#ff1275] text-white font-semibold rounded transition-colors"
+                className="py-2.5 px-6 text-[12px] tracking-[0.1em] uppercase bg-[#FF2D85] hover:bg-[#ff1275] text-white font-medium transition-colors cursor-pointer"
               >
-                ↓ Export CSV
+                +export csv
               </button>
             </div>
 
             {data?.subscribers.length === 0 ? (
-              <div className="py-12 text-center text-[#F2EEE8]/40 text-[13px]">
-                No subscribers recorded yet in Supabase.
+              <div className="py-20 text-center text-[#F2EEE8]/40 text-[13px] tracking-wider uppercase">
+                No active subscribers in database.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-[13px]">
+                <table className="w-full text-left text-[13px] tracking-wide">
                   <thead>
-                    <tr className="border-b border-[#F2EEE8]/10 text-[#F2EEE8]/40 uppercase text-[11px] tracking-wider">
-                      <th className="py-3 px-4">#</th>
-                      <th className="py-3 px-4">Email</th>
-                      <th className="py-3 px-4">Subscribed At</th>
-                      <th className="py-3 px-4">Status</th>
+                    <tr className="border-b border-[#F2EEE8]/10 text-[#F2EEE8]/40 uppercase text-[11px] tracking-[0.14em]">
+                      <th className="py-4 px-4 font-normal">#</th>
+                      <th className="py-4 px-4 font-normal">Email Address</th>
+                      <th className="py-4 px-4 font-normal">Timestamp</th>
+                      <th className="py-4 px-4 font-normal">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data?.subscribers.map((sub, idx) => (
                       <tr
                         key={sub.id || idx}
-                        className="border-b border-[#F2EEE8]/5 hover:bg-[#191b22] transition-colors"
+                        className="border-b border-[#F2EEE8]/6 hover:bg-[#18191f] transition-colors"
                       >
-                        <td className="py-3 px-4 text-[#F2EEE8]/40">{idx + 1}</td>
-                        <td className="py-3 px-4 text-white font-medium">{sub.email}</td>
-                        <td className="py-3 px-4 text-[#F2EEE8]/60">
+                        <td className="py-4 px-4 text-[#F2EEE8]/40 font-mono">{idx + 1}</td>
+                        <td className="py-4 px-4 text-[#F2EEE8] font-medium">{sub.email}</td>
+                        <td className="py-4 px-4 text-[#F2EEE8]/60 font-mono text-[12px]">
                           {new Date(sub.created_at).toLocaleString('ru-RU')}
                         </td>
-                        <td className="py-3 px-4">
-                          <span className="text-[11px] px-2 py-0.5 rounded uppercase font-semibold bg-[#00FF88]/10 text-[#00FF88]">
-                            {sub.status || 'Active'}
+                        <td className="py-4 px-4">
+                          <span className="text-[11px] tracking-[0.1em] text-[#00FF88] uppercase font-medium">
+                            +{sub.status || 'active'}
                           </span>
                         </td>
                       </tr>
@@ -497,7 +476,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
           </div>
         )}
 
-      </div>
+      </main>
+
+      {/* Admin Footer */}
+      <footer className="max-w-[1440px] mx-auto px-6 md:px-12 py-12 border-t border-[#F2EEE8]/10 flex flex-col sm:flex-row items-center justify-between text-[12px] tracking-[0.1em] text-[#F2EEE8]/40 uppercase gap-4">
+        <span>© PARALIFE // SECURE CONTROL</span>
+        <span>Less Noise. More Life.</span>
+      </footer>
+
     </div>
   );
 };
