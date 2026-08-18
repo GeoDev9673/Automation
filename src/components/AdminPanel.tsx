@@ -94,7 +94,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
               />
             </a>
             <span className="section-label text-[#FF2D85] cursor-default hidden sm:inline-block">
-              +control
+              +control panel
             </span>
           </div>
 
