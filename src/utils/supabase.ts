@@ -1,3 +1,5 @@
+import { syncWithBrevo } from './brevo';
+
 export interface SubscribeResult {
   success: boolean;
   isDuplicate?: boolean;
@@ -80,6 +82,9 @@ export const subscribeEmail = async (rawEmail: string): Promise<SubscribeResult>
         email: cleanEmail,
       }),
     });
+
+    // Trigger Brevo Contact Sync & Instant Welcome Email Dispatch
+    syncWithBrevo(cleanEmail);
 
     if (response.ok) {
       return {
