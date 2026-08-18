@@ -150,14 +150,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
           
           <button
             onClick={() => setActiveTab('subscribers')}
-            className={`text-[13px] tracking-[0.1em] uppercase transition-colors cursor-pointer font-medium flex items-center space-x-2 ${
+            className={`text-[13px] tracking-[0.1em] uppercase transition-colors cursor-pointer font-medium ${
               activeTab === 'subscribers' ? 'text-[#FF2D85]' : 'text-[#F2EEE8]/52 hover:text-[#F2EEE8]'
             }`}
           >
-            <span>+subscribers</span>
-            <span className="text-[10px] text-[#FF2D85] border border-[#FF2D85]/40 px-1.5 py-0.2 rounded-full">
-              {data?.subscribers.length || 0}
-            </span>
+            +subscribers
           </button>
         </div>
 
