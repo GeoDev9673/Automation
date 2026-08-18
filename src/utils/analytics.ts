@@ -22,50 +22,62 @@ export interface AnalyticsSummary {
   subscribers: SubscriberRecord[];
 }
 
-const STORAGE_KEY_REAL_VISITS = 'paralife_real_visits_v1';
+const STORAGE_KEY_REAL_DEVICES = 'paralife_unique_devices_v2';
+const STORAGE_KEY_DEVICE_COUNTED = 'paralife_device_already_counted_v2';
 const STORAGE_KEY_VISITOR_ID = 'paralife_anon_visitor_uuid';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 /**
- * Get or create anonymous visitor ID (persists per browser)
+ * Get or create unique persistent device/visitor ID
  */
 export const getVisitorId = (): string => {
   let id = localStorage.getItem(STORAGE_KEY_VISITOR_ID);
   if (!id) {
-    id = 'v_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+    id = 'dev_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
     localStorage.setItem(STORAGE_KEY_VISITOR_ID, id);
   }
   return id;
 };
 
 /**
- * Record a real visit on site load
+ * Record a visit ONCE per unique device/browser
+ * (Re-visiting on the same device will NOT increment the counter)
  */
 export const trackPageView = async (): Promise<void> => {
   try {
+    // Check if this device has already been recorded
+    const isAlreadyCounted = localStorage.getItem(STORAGE_KEY_DEVICE_COUNTED);
+    if (isAlreadyCounted) {
+      return; // Same device entered again -> do NOT count
+    }
+
     const visitorId = getVisitorId();
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
 
-    const newVisit: RealVisitRecord = {
-      id: 'v_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+    const newRecord: RealVisitRecord = {
+      id: 'd_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
       visitorId,
       timestamp: Date.now(),
       date: dateStr,
     };
 
-    // 1. Save to Local Storage real visits log
-    const raw = localStorage.getItem(STORAGE_KEY_REAL_VISITS);
+    // Read stored unique devices list
+    const raw = localStorage.getItem(STORAGE_KEY_REAL_DEVICES);
     const list: RealVisitRecord[] = raw ? JSON.parse(raw) : [];
-    list.unshift(newVisit);
-    
-    // Keep max 2000 real records
-    if (list.length > 2000) list.length = 2000;
-    localStorage.setItem(STORAGE_KEY_REAL_VISITS, JSON.stringify(list));
 
-    // 2. Try pushing to Supabase page_views if table exists
+    // Double check if visitorId is not already in list
+    if (!list.some((item) => item.visitorId === visitorId)) {
+      list.unshift(newRecord);
+      localStorage.setItem(STORAGE_KEY_REAL_DEVICES, JSON.stringify(list));
+    }
+
+    // Mark this device as permanently counted
+    localStorage.setItem(STORAGE_KEY_DEVICE_COUNTED, 'true');
+
+    // Async notify Supabase page_views if configured
     if (SUPABASE_URL && SUPABASE_ANON_KEY) {
       const baseUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
       fetch(`${baseUrl}/rest/v1/page_views`, {
@@ -83,12 +95,12 @@ export const trackPageView = async (): Promise<void> => {
       }).catch(() => {});
     }
   } catch (err) {
-    console.warn('[Analytics Error]:', err);
+    console.warn('[Device Track Error]:', err);
   }
 };
 
 /**
- * Fetch 100% real analytics data from Supabase and live visit storage
+ * Fetch 100% genuine unique device metrics
  */
 export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSummary> => {
   // 1. Fetch real subscribers from Supabase
@@ -114,27 +126,39 @@ export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSumm
     }
   }
 
-  // 2. Read real visits
-  const raw = localStorage.getItem(STORAGE_KEY_REAL_VISITS);
-  const realVisits: RealVisitRecord[] = raw ? JSON.parse(raw) : [];
+  // 2. Read stored unique devices list (deduplicated by visitorId)
+  const raw = localStorage.getItem(STORAGE_KEY_REAL_DEVICES);
+  let storedDevices: RealVisitRecord[] = raw ? JSON.parse(raw) : [];
 
-  // Ensure at least the current session is recorded
-  if (realVisits.length === 0) {
-    const today = new Date().toISOString().split('T')[0];
-    realVisits.push({
-      id: 'v_init',
-      visitorId: getVisitorId(),
-      timestamp: Date.now(),
-      date: today,
-    });
-    localStorage.setItem(STORAGE_KEY_REAL_VISITS, JSON.stringify(realVisits));
+  // Deduplicate strictly by visitorId
+  const uniqueMap = new Map<string, RealVisitRecord>();
+  for (const rec of storedDevices) {
+    if (!uniqueMap.has(rec.visitorId)) {
+      uniqueMap.set(rec.visitorId, rec);
+    }
   }
 
-  // 3. Build real day-by-day chart data
+  // If currently empty, count this active device as 1
+  const currentVisitorId = getVisitorId();
+  if (!uniqueMap.has(currentVisitorId)) {
+    const today = new Date().toISOString().split('T')[0];
+    const initialRec: RealVisitRecord = {
+      id: 'd_current',
+      visitorId: currentVisitorId,
+      timestamp: Date.now(),
+      date: today,
+    };
+    uniqueMap.set(currentVisitorId, initialRec);
+    localStorage.setItem(STORAGE_KEY_DEVICE_COUNTED, 'true');
+  }
+
+  const uniqueDevices = Array.from(uniqueMap.values());
+  localStorage.setItem(STORAGE_KEY_REAL_DEVICES, JSON.stringify(uniqueDevices));
+
+  // 3. Build day-by-day unique devices chart data
   const chartData: { date: string; fullDate: string; visits: number; uniques: number }[] = [];
   const now = new Date();
 
-  // Create date buckets for the selected range
   for (let i = daysRange - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(now.getDate() - i);
@@ -146,34 +170,32 @@ export const getAnalyticsSummary = async (daysRange = 14): Promise<AnalyticsSumm
       year: 'numeric',
     });
 
-    const dayVisits = realVisits.filter((v) => v.date === dateKey);
-    const dayUniques = new Set(dayVisits.map((v) => v.visitorId)).size;
+    const dayDevices = uniqueDevices.filter((v) => v.date === dateKey);
 
     chartData.push({
       date: dateLabel,
       fullDate: fullDateLabel,
-      visits: dayVisits.length,
-      uniques: dayUniques,
+      visits: dayDevices.length,
+      uniques: dayDevices.length,
     });
   }
 
-  // 4. Calculate real total metrics
-  const totalVisits = realVisits.length;
-  const uniqueVisitors = new Set(realVisits.map((v) => v.visitorId)).size;
+  // 4. Calculate total unique device metrics
+  const totalUniqueDevices = uniqueDevices.length;
   
   const todayKey = now.toISOString().split('T')[0];
-  const todayVisits = realVisits.filter((v) => v.date === todayKey).length;
+  const todayDevices = uniqueDevices.filter((v) => v.date === todayKey).length;
 
   const totalSubscribers = subscribers.length;
   const conversionRate =
-    uniqueVisitors > 0
-      ? Number(((totalSubscribers / uniqueVisitors) * 100).toFixed(1))
+    totalUniqueDevices > 0
+      ? Number(((totalSubscribers / totalUniqueDevices) * 100).toFixed(1))
       : 0;
 
   return {
-    totalVisits,
-    uniqueVisitors,
-    todayVisits,
+    totalVisits: totalUniqueDevices,
+    uniqueVisitors: totalUniqueDevices,
+    todayVisits: todayDevices,
     totalSubscribers,
     conversionRate,
     chartData,

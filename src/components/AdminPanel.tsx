@@ -162,30 +162,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         {activeTab === 'overview' && (
           <div className="flex flex-col space-y-20 animate-fade-in">
             
-            {/* 100% REAL Metric Numbers Grid */}
+            {/* 100% REAL Unique Devices Metric Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 border-b border-[#F2EEE8]/10 pb-16">
               
               <div className="flex flex-col space-y-3">
                 <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
-                  TOTAL VISITS
-                </span>
-                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
-                  {loading ? '...' : data?.totalVisits.toLocaleString()}
-                </span>
-                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
-                  Real pageviews recorded
-                </span>
-              </div>
-
-              <div className="flex flex-col space-y-3">
-                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
-                  UNIQUE VISITORS
+                  UNIQUE DEVICES
                 </span>
                 <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
                   {loading ? '...' : data?.uniqueVisitors.toLocaleString()}
                 </span>
                 <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
-                  Unique browser sessions
+                  1 visit per unique device
+                </span>
+              </div>
+
+              <div className="flex flex-col space-y-3">
+                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
+                  TODAY'S DEVICES
+                </span>
+                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
+                  {loading ? '...' : data?.todayVisits.toLocaleString()}
+                </span>
+                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
+                  New devices today
                 </span>
               </div>
 
@@ -209,7 +209,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                   {loading ? '...' : `${data?.conversionRate}%`}
                 </span>
                 <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
-                  Subscribers / Visitors
+                  Subscribers / Devices
                 </span>
               </div>
 
