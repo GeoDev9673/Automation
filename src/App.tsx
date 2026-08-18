@@ -14,7 +14,7 @@ export default function App() {
   const [isAdminRoute, setIsAdminRoute] = useState<boolean>(() => {
     const path = window.location.pathname.toLowerCase();
     const hash = window.location.hash.toLowerCase();
-    return path.startsWith('/admin') || hash === '#admin';
+    return path.startsWith('/admin-control-panel') || hash === '#admin-control-panel';
   });
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function App() {
     const handleRouteChange = () => {
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      setIsAdminRoute(path.startsWith('/admin') || hash === '#admin');
+      setIsAdminRoute(path.startsWith('/admin-control-panel') || hash === '#admin-control-panel');
     };
 
     window.addEventListener('popstate', handleRouteChange);
@@ -39,7 +39,7 @@ export default function App() {
     };
   }, [isAdminRoute]);
 
-  // If on the /admin route, render the standalone Admin Page
+  // If on the /admin-control-panel route, render the standalone Admin Page
   if (isAdminRoute) {
     return <AdminPage />;
   }
