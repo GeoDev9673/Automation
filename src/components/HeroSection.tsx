@@ -63,7 +63,7 @@ export const HeroSection: React.FC = () => {
           className="text-[11px] sm:text-[12px] tracking-[0.2em] uppercase text-[#F2EEE8]/70 hover:text-[#FF2D85] active:text-[#FF2D85] font-medium transition-colors duration-150 py-2 px-4 cursor-pointer min-h-[44px] flex items-center justify-center"
           aria-label={isSoundOn ? 'Turn sound off' : 'Turn sound on'}
         >
-          {isSoundOn ? '[ — SOUND ON ]' : '[ + SOUND OFF ]'}
+          {isSoundOn ? '[ — SOUND OFF ]' : '[ + SOUND ON ]'}
         </button>
       </div>
     </section>
