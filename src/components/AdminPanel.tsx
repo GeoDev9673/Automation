@@ -15,6 +15,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     x: number;
     y: number;
     date: string;
+    fullDate: string;
     visits: number;
     uniques: number;
   } | null>(null);
@@ -78,38 +79,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       } Z`
     : '';
 
-  // Active display point (either hovered or the latest day)
   const activePoint = hoveredPoint || (points.length > 0 ? points[points.length - 1] : null);
 
   return (
     <div className="min-h-screen w-full bg-[#121316] text-[#F2EEE8] selection:bg-[#FF2D85]/30">
       
       {/* Top Brand Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-[#121316]/95 backdrop-blur-sm border-b border-[#F2EEE8]/10 py-6 px-6 md:px-12">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-[#121316]/95 backdrop-blur-md border-b border-[#F2EEE8]/10 py-4 sm:py-5 md:py-6 px-4 sm:px-6 md:px-12">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between">
           
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3 sm:space-x-6">
             <a href="/" className="hover:opacity-80 transition-opacity">
               <img
                 src={logoImg}
                 alt={PARALIFE_META.brandName}
-                className="h-8 md:h-10 w-auto object-contain"
+                className="h-7 sm:h-8 md:h-10 w-auto object-contain max-w-[120px] sm:max-w-[180px]"
               />
             </a>
-            <span className="section-label text-[#FF2D85] cursor-default hidden sm:inline-block">
+            <span className="section-label text-[#FF2D85] cursor-default hidden md:inline-block">
               +control panel
             </span>
           </div>
 
-          <div className="flex items-center space-x-6 md:space-x-8">
+          <div className="flex items-center space-x-3 sm:space-x-6 md:space-x-8">
             {/* Range Filters */}
-            <div className="flex items-center space-x-4 text-[12px] uppercase tracking-[0.1em]">
+            <div className="flex items-center space-x-2 sm:space-x-4 text-[11px] sm:text-[12px] uppercase tracking-[0.1em]">
               {[7, 14, 30].map((days) => (
                 <button
                   key={days}
                   onClick={() => setDaysRange(days)}
-                  className={`transition-colors cursor-pointer ${
-                    daysRange === days ? 'text-[#FF2D85] font-semibold' : 'text-[#F2EEE8]/52 hover:text-[#F2EEE8]'
+                  className={`py-1.5 px-2 transition-colors cursor-pointer min-h-[38px] flex items-center ${
+                    daysRange === days ? 'text-[#FF2D85] font-bold' : 'text-[#F2EEE8]/52 hover:text-[#F2EEE8]'
                   }`}
                 >
                   +{days}d
@@ -120,7 +120,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
             {/* Refresh */}
             <button
               onClick={() => loadData(daysRange)}
-              className="text-[12px] uppercase tracking-[0.1em] text-[#F2EEE8]/52 hover:text-[#FF2D85] transition-colors cursor-pointer hidden sm:inline-block"
+              className="text-[11px] sm:text-[12px] uppercase tracking-[0.1em] text-[#F2EEE8]/52 hover:text-[#FF2D85] transition-colors cursor-pointer hidden sm:flex items-center min-h-[38px] px-2"
             >
               +refresh
             </button>
@@ -128,7 +128,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
             {/* Exit to Site */}
             <button
               onClick={onClose}
-              className="text-[12px] uppercase tracking-[0.1em] text-[#F2EEE8]/76 hover:text-[#FF2D85] transition-colors cursor-pointer font-medium"
+              className="text-[11px] sm:text-[12px] uppercase tracking-[0.1em] text-[#F2EEE8]/80 hover:text-[#FF2D85] transition-colors cursor-pointer font-medium min-h-[38px] px-2 sm:px-3 flex items-center"
             >
               ← return
             </button>
@@ -138,13 +138,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-[1440px] mx-auto px-6 md:px-12 pt-32 pb-24 flex flex-col space-y-16">
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-8 md:px-12 pt-24 sm:pt-28 md:pt-32 pb-20 flex flex-col space-y-10 sm:space-y-16">
         
         {/* Navigation Tabs */}
-        <div className="flex items-center space-x-10 border-b border-[#F2EEE8]/10 pb-4">
+        <div className="flex items-center space-x-8 sm:space-x-10 border-b border-[#F2EEE8]/10 pb-4">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`text-[13px] tracking-[0.1em] uppercase transition-colors cursor-pointer font-medium ${
+            className={`text-[12px] sm:text-[13px] tracking-[0.12em] uppercase transition-colors cursor-pointer font-semibold py-1 ${
               activeTab === 'overview' ? 'text-[#FF2D85]' : 'text-[#F2EEE8]/52 hover:text-[#F2EEE8]'
             }`}
           >
@@ -153,88 +153,93 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
           
           <button
             onClick={() => setActiveTab('subscribers')}
-            className={`text-[13px] tracking-[0.1em] uppercase transition-colors cursor-pointer font-medium ${
+            className={`text-[12px] sm:text-[13px] tracking-[0.12em] uppercase transition-colors cursor-pointer font-semibold py-1 flex items-center space-x-2 ${
               activeTab === 'subscribers' ? 'text-[#FF2D85]' : 'text-[#F2EEE8]/52 hover:text-[#F2EEE8]'
             }`}
           >
-            +subscribers
+            <span>+subscribers</span>
+            {data && data.totalSubscribers > 0 && (
+              <span className="text-[10px] bg-[#FF2D85]/20 text-[#FF2D85] px-1.5 py-0.5 rounded-full font-mono">
+                {data.totalSubscribers}
+              </span>
+            )}
           </button>
         </div>
 
         {/* TAB 1: OVERVIEW & CHARTS */}
         {activeTab === 'overview' && (
-          <div className="flex flex-col space-y-16 animate-fade-in">
+          <div className="flex flex-col space-y-12 sm:space-y-16 animate-fade-in">
             
-            {/* 100% REAL Unique Devices Metric Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 border-b border-[#F2EEE8]/10 pb-16">
+            {/* Metric Grid (2x2 on Mobile, 4-cols on Desktop) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 md:gap-12 border-b border-[#F2EEE8]/10 pb-10 sm:pb-16">
               
-              <div className="flex flex-col space-y-3">
-                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
+              <div className="flex flex-col space-y-2 sm:space-y-3">
+                <span className="text-[10px] sm:text-[11px] tracking-[0.16em] uppercase text-[#F2EEE8]/52 font-medium">
                   UNIQUE DEVICES
                 </span>
-                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
                   {loading ? '...' : data?.uniqueVisitors.toLocaleString()}
                 </span>
-                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
-                  1 visit per unique device
+                <span className="text-[11px] sm:text-[12px] tracking-[0.04em] text-[#F2EEE8]/52 uppercase">
+                  1 visit per device
                 </span>
               </div>
 
-              <div className="flex flex-col space-y-3">
-                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
+              <div className="flex flex-col space-y-2 sm:space-y-3">
+                <span className="text-[10px] sm:text-[11px] tracking-[0.16em] uppercase text-[#F2EEE8]/52 font-medium">
                   TODAY'S DEVICES
                 </span>
-                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
                   {loading ? '...' : data?.todayVisits.toLocaleString()}
                 </span>
-                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
+                <span className="text-[11px] sm:text-[12px] tracking-[0.04em] text-[#F2EEE8]/52 uppercase">
                   New devices today
                 </span>
               </div>
 
-              <div className="flex flex-col space-y-3">
-                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
+              <div className="flex flex-col space-y-2 sm:space-y-3">
+                <span className="text-[10px] sm:text-[11px] tracking-[0.16em] uppercase text-[#F2EEE8]/52 font-medium">
                   SIGNAL SUBSCRIBERS
                 </span>
-                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#FF2D85]">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-[#FF2D85]">
                   {loading ? '...' : data?.totalSubscribers.toLocaleString()}
                 </span>
-                <span className="text-[12px] tracking-[0.06em] text-[#00FF88] uppercase">
+                <span className="text-[11px] sm:text-[12px] tracking-[0.04em] text-[#00FF88] uppercase">
                   Real database records
                 </span>
               </div>
 
-              <div className="flex flex-col space-y-3">
-                <span className="text-[11px] tracking-[0.18em] uppercase text-[#F2EEE8]/52 font-medium">
+              <div className="flex flex-col space-y-2 sm:space-y-3">
+                <span className="text-[10px] sm:text-[11px] tracking-[0.16em] uppercase text-[#F2EEE8]/52 font-medium">
                   CONVERSION RATE
                 </span>
-                <span className="text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-[#F2EEE8]">
                   {loading ? '...' : `${data?.conversionRate}%`}
                 </span>
-                <span className="text-[12px] tracking-[0.06em] text-[#F2EEE8]/52 uppercase">
+                <span className="text-[11px] sm:text-[12px] tracking-[0.04em] text-[#F2EEE8]/52 uppercase">
                   Subscribers / Devices
                 </span>
               </div>
 
             </div>
 
-            {/* INTEGRATED TRAFFIC ACTIVITY CHART (Clean, No Clumsy Tooltip Boxes) */}
-            <div className="flex flex-col space-y-6">
+            {/* TRAFFIC ACTIVITY CHART */}
+            <div className="flex flex-col space-y-4 sm:space-y-6">
               
               {/* Header with live inline detail HUD */}
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#F2EEE8]/10 pb-4 gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-[#F2EEE8]/10 pb-4 gap-2 sm:gap-3">
                 <div>
                   <span className="section-label text-[#F2EEE8]/52">
                     +signal activity
                   </span>
-                  <h3 className="type-h3 text-[#F2EEE8] mt-1">
+                  <h3 className="text-[20px] sm:text-[24px] md:text-[28px] text-[#F2EEE8] font-normal tracking-tight mt-1">
                     Device Activity Trajectory
                   </h3>
                 </div>
 
                 {/* Integrated live data read-out */}
                 {activePoint && (
-                  <div className="flex items-center space-x-3 text-[13px]">
+                  <div className="flex items-center space-x-2 text-[12px] sm:text-[13px]">
                     <span className="text-[#F2EEE8]/52 uppercase tracking-wider">
                       {activePoint.fullDate || activePoint.date}:
                     </span>
@@ -246,10 +251,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
               </div>
 
               {/* Seamless Chart Area */}
-              <div className="w-full bg-[#15161b] border border-[#F2EEE8]/10 p-6 relative overflow-x-auto">
+              <div className="w-full bg-[#15161b] border border-[#F2EEE8]/10 p-3 sm:p-6 relative overflow-x-auto rounded-sm">
                 <svg
                   viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                  className="w-full h-auto min-w-[540px]"
+                  className="w-full h-auto min-w-[500px]"
                 >
                   <defs>
                     <linearGradient id="paralifeGradient" x1="0" y1="0" x2="0" y2="1">
@@ -272,7 +277,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                           stroke="rgba(242, 238, 232, 0.05)"
                         />
                         <text
-                          x={paddingX - 10}
+                          x={paddingX - 8}
                           y={y + 3}
                           fill="rgba(242, 238, 232, 0.3)"
                           fontSize="10"
@@ -335,6 +340,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                               uniques: p.uniques,
                             })
                           }
+                          onTouchStart={() =>
+                            setHoveredPoint({
+                              x: p.x,
+                              y: p.y,
+                              date: p.date,
+                              fullDate: p.fullDate,
+                              visits: p.visits,
+                              uniques: p.uniques,
+                            })
+                          }
                           onMouseLeave={() => setHoveredPoint(null)}
                         />
                         {/* Dates on bottom axis */}
@@ -364,15 +379,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
 
         {/* TAB 2: SUBSCRIBERS TABLE */}
         {activeTab === 'subscribers' && (
-          <div className="flex flex-col space-y-8 animate-fade-in">
-            <div className="flex items-center justify-between border-b border-[#F2EEE8]/10 pb-6">
+          <div className="flex flex-col space-y-6 sm:space-y-8 animate-fade-in">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#F2EEE8]/10 pb-4 sm:pb-6 gap-4">
               <div>
                 <span className="section-label text-[#F2EEE8]/52">+database</span>
-                <h3 className="type-h3 text-[#F2EEE8] mt-1">Verified Signal Subscribers</h3>
+                <h3 className="text-[20px] sm:text-[24px] md:text-[28px] text-[#F2EEE8] font-normal tracking-tight mt-1">
+                  Verified Signal Subscribers
+                </h3>
               </div>
               <button
                 onClick={handleExportCSV}
-                className="py-2.5 px-6 text-[12px] tracking-[0.1em] uppercase bg-[#FF2D85] hover:bg-[#ff1275] text-white font-medium transition-colors cursor-pointer"
+                className="py-2.5 px-5 sm:px-6 text-[12px] tracking-[0.1em] uppercase bg-[#FF2D85] hover:bg-[#ff1275] active:bg-[#ff1275] text-white font-medium transition-colors cursor-pointer min-h-[44px] flex items-center justify-center self-start sm:self-auto"
               >
                 +export csv
               </button>
@@ -383,37 +400,63 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 No active subscribers in database.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-[13px] tracking-wide">
-                  <thead>
-                    <tr className="border-b border-[#F2EEE8]/10 text-[#F2EEE8]/40 uppercase text-[11px] tracking-[0.14em]">
-                      <th className="py-4 px-4 font-normal">#</th>
-                      <th className="py-4 px-4 font-normal">Email Address</th>
-                      <th className="py-4 px-4 font-normal">Timestamp</th>
-                      <th className="py-4 px-4 font-normal">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data?.subscribers.map((sub, idx) => (
-                      <tr
-                        key={sub.id || idx}
-                        className="border-b border-[#F2EEE8]/6 hover:bg-[#18191f] transition-colors"
-                      >
-                        <td className="py-4 px-4 text-[#F2EEE8]/40 font-mono">{idx + 1}</td>
-                        <td className="py-4 px-4 text-[#F2EEE8] font-medium">{sub.email}</td>
-                        <td className="py-4 px-4 text-[#F2EEE8]/60 font-mono text-[12px]">
-                          {new Date(sub.created_at).toLocaleString('ru-RU')}
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-[11px] tracking-[0.1em] text-[#00FF88] uppercase font-medium">
-                            +{sub.status || 'active'}
-                          </span>
-                        </td>
+              <>
+                {/* Desktop & Tablet Table View */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full text-left text-[13px] tracking-wide">
+                    <thead>
+                      <tr className="border-b border-[#F2EEE8]/10 text-[#F2EEE8]/40 uppercase text-[11px] tracking-[0.14em]">
+                        <th className="py-3 px-4 font-normal">#</th>
+                        <th className="py-3 px-4 font-normal">Email Address</th>
+                        <th className="py-3 px-4 font-normal">Timestamp</th>
+                        <th className="py-3 px-4 font-normal">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {data?.subscribers.map((sub, idx) => (
+                        <tr
+                          key={sub.id || idx}
+                          className="border-b border-[#F2EEE8]/6 hover:bg-[#18191f] transition-colors"
+                        >
+                          <td className="py-3.5 px-4 text-[#F2EEE8]/40 font-mono">{idx + 1}</td>
+                          <td className="py-3.5 px-4 text-[#F2EEE8] font-medium">{sub.email}</td>
+                          <td className="py-3.5 px-4 text-[#F2EEE8]/60 font-mono text-[12px]">
+                            {new Date(sub.created_at).toLocaleString('ru-RU')}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="text-[11px] tracking-[0.1em] text-[#00FF88] uppercase font-medium">
+                              +{sub.status || 'active'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="sm:hidden flex flex-col space-y-3">
+                  {data?.subscribers.map((sub, idx) => (
+                    <div
+                      key={sub.id || idx}
+                      className="bg-[#16171d] border border-[#F2EEE8]/10 p-4 rounded-sm flex flex-col space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-[#F2EEE8]/40 font-mono">#{idx + 1}</span>
+                        <span className="text-[10px] tracking-[0.1em] text-[#00FF88] uppercase font-medium bg-[#00FF88]/10 px-2 py-0.5 rounded-sm">
+                          +{sub.status || 'active'}
+                        </span>
+                      </div>
+                      <span className="text-[14px] text-[#F2EEE8] font-medium break-all select-all">
+                        {sub.email}
+                      </span>
+                      <span className="text-[11px] text-[#F2EEE8]/52 font-mono">
+                        {new Date(sub.created_at).toLocaleString('ru-RU')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -421,8 +464,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       </main>
 
       {/* Admin Footer */}
-      <footer className="max-w-[1440px] mx-auto px-6 md:px-12 py-12 border-t border-[#F2EEE8]/10 flex flex-col sm:flex-row items-center justify-between text-[12px] tracking-[0.1em] text-[#F2EEE8]/40 uppercase gap-4">
-        <span>© PARALIFE // SECURE CONTROL</span>
+      <footer className="max-w-[1440px] mx-auto px-4 sm:px-8 md:px-12 py-8 sm:py-12 border-t border-[#F2EEE8]/10 flex flex-col sm:flex-row items-center justify-between text-[11px] sm:text-[12px] tracking-[0.1em] text-[#F2EEE8]/40 uppercase gap-3">
+        <span>© PARALIFE // CONTROL</span>
         <span>Less Noise. More Life.</span>
       </footer>
 
