@@ -46,9 +46,6 @@ export const SubscribeSection: React.FC = () => {
       <div className="max-w-[560px] mx-auto text-center flex flex-col items-center space-y-8 sm:space-y-10">
         {/* Section Headline */}
         <div className="flex flex-col items-center space-y-2">
-          <span className="section-label text-[#FF2D85]">
-            +signal
-          </span>
           <h3 className="text-[28px] sm:text-[36px] md:text-[44px] text-[#F2EEE8] font-normal leading-[1.12] sm:leading-[1.08] tracking-[-0.01em]">
             Follow the Signal
           </h3>
