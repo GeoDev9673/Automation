@@ -1,20 +1,49 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MUSIC_DATA } from '../data/paralifeData';
-import { audioEngine } from '../utils/audioSynth';
+import trackAudio from '../assets/audio/stealing-time.mp3';
 
 export const MusicSection: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(255.5); // 04:15.5
   const [showPlatforms, setShowPlatforms] = useState(false);
-  const animationRef = useRef<number | null>(null);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const platformsRef = useRef<HTMLDivElement>(null);
   const soundwaveRef = useRef<HTMLDivElement>(null);
 
-  // Sync with audio engine
+  // Initialize and attach audio event listeners
   useEffect(() => {
-    return audioEngine.subscribe((playing) => {
-      setIsPlaying(playing);
-    });
+    const audio = new Audio(trackAudio);
+    audioRef.current = audio;
+    audio.preload = 'metadata';
+
+    const handleLoadedMetadata = () => {
+      if (audio.duration && !isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.pause();
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+      audioRef.current = null;
+    };
   }, []);
 
   // Close platform dropdown on click outside or ESC press
@@ -41,42 +70,39 @@ export const MusicSection: React.FC = () => {
   }, [showPlatforms]);
 
   const togglePlay = () => {
-    audioEngine.toggle();
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch((err) => {
+        console.warn('[Audio Play Error]:', err);
+      });
+    }
   };
 
-  // Touch & Click scrubbing helper
+  // Scrub audio to clicked/dragged position
   const handleScrub = (clientX: number) => {
-    if (!soundwaveRef.current) return;
+    if (!soundwaveRef.current || !audioRef.current) return;
     const rect = soundwaveRef.current.getBoundingClientRect();
     const clickX = clientX - rect.left;
-    const newProgress = (clickX / rect.width) * 100;
-    setProgress(Math.max(0, Math.min(100, newProgress)));
+    const progressRatio = Math.max(0, Math.min(1, clickX / rect.width));
+    const targetTime = progressRatio * duration;
+    
+    audioRef.current.currentTime = targetTime;
+    setCurrentTime(targetTime);
   };
-
-  // Simulate progress bar movement when playing
-  useEffect(() => {
-    if (isPlaying) {
-      const updateProgress = () => {
-        setProgress((prev) => (prev >= 100 ? 0 : prev + 0.12));
-        animationRef.current = requestAnimationFrame(updateProgress);
-      };
-      animationRef.current = requestAnimationFrame(updateProgress);
-    } else {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    }
-    return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
-  }, [isPlaying]);
 
   // Format progress into MM:SS
-  const totalSeconds = 222; // 3:42
-  const currentSeconds = Math.floor((progress / 100) * totalSeconds);
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60);
-    const s = sec % 60;
+    const s = Math.floor(sec % 60);
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
+
+  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <section
@@ -117,7 +143,7 @@ export const MusicSection: React.FC = () => {
                   {MUSIC_DATA.trackTitle}
                 </span>
                 <span className="text-[12px] text-[#F2EEE8]/52 tracking-[0.04em] font-mono">
-                  {formatTime(currentSeconds)} / {MUSIC_DATA.duration}
+                  {formatTime(currentTime)} / {formatTime(duration)}
                 </span>
               </div>
             </div>
@@ -135,7 +161,7 @@ export const MusicSection: React.FC = () => {
                 <span className="text-[#FF2D85] text-xs">▼</span>
               </button>
 
-              {/* Quiet Platform Dropdown (Full width on small mobile, anchored on desktop) */}
+              {/* Quiet Platform Dropdown */}
               {showPlatforms && (
                 <div className="absolute right-0 top-full mt-2 w-full sm:w-56 bg-[#181920] border border-[#F2EEE8]/20 shadow-2xl p-4 flex flex-col space-y-3 z-30 animate-fade-in rounded-sm">
                   <span className="text-[10px] uppercase tracking-[0.14em] text-[#F2EEE8]/52 mb-1">
@@ -183,9 +209,9 @@ export const MusicSection: React.FC = () => {
                 const heightPercent = Math.max(4, Math.min(98, (env * (0.35 + wave1 + wave2 + wave3 + dynamicPulse)) * 100));
                 
                 const barPos = (i / 120) * 100;
-                const distToDot = Math.abs(barPos - progress);
+                const distToDot = Math.abs(barPos - progressPercent);
                 const isNearDot = distToDot < 3;
-                const isPassed = barPos <= progress;
+                const isPassed = barPos <= progressPercent;
 
                 return (
                   <div
@@ -209,7 +235,7 @@ export const MusicSection: React.FC = () => {
               {/* Glowing Dot Cursor */}
               <div
                 className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 sm:w-2.5 sm:h-2.5 rounded-full bg-[#FF2D85] shadow-[0_0_12px_#FF2D85,0_0_24px_#FF2D85] pointer-events-none transition-all duration-75 z-20 flex items-center justify-center"
-                style={{ left: `${progress}%` }}
+                style={{ left: `${progressPercent}%` }}
               >
                 <div className="w-1 h-1 rounded-full bg-white shadow-[0_0_4px_white]" />
               </div>

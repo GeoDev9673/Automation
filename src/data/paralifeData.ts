@@ -32,7 +32,7 @@ export const MUSIC_DATA = {
   sectionLabel: 'MUSIC',
   headline: 'PARALIFE SOUND SYSTEM',
   trackTitle: 'PARALIFE — STEALING TIME',
-  duration: '03:42',
+  duration: '04:15',
   streamLinkText: 'LISTEN ON ALL PLATFORMS →',
   platforms: [
     { name: 'Spotify', href: 'https://spotify.com' },
