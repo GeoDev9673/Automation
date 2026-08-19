@@ -97,7 +97,7 @@ export const Header: React.FC = () => {
           aria-controls="mobile-nav-menu"
           aria-label={mobileMenuOpen ? 'Close Navigation' : 'Open Navigation'}
         >
-          {mobileMenuOpen ? '✕ CLOSE' : '+ENTRY'}
+          {mobileMenuOpen ? '✕ CLOSE' : 'P/01'}
         </button>
       </div>
 
