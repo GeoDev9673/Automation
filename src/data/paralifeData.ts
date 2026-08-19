@@ -3,6 +3,16 @@ import memoryCinemaImg from '../assets/images/memory_cinema_1785348915755.jpg';
 
 import { NavItem } from '../types';
 
+/**
+ * FEATURE FLAGS:
+ * Easily enable or disable sections for release dates.
+ * Change `showMusicSection: true` when the track is officially released!
+ */
+export const FEATURE_FLAGS = {
+  showMusicSection: false, // Hidden for initial launch. Switch to true on release date!
+  showMemoryCinema: true,
+};
+
 export const PARALIFE_META = {
   brandName: 'PARALIFE',
   tagline: 'Less Noise. More Life.',
@@ -11,7 +21,7 @@ export const PARALIFE_META = {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: '+video', href: '#hero' },
-  { label: '+music', href: '#music' },
+  ...(FEATURE_FLAGS.showMusicSection ? [{ label: '+music', href: '#music' }] : []),
   { label: '+memory', href: '#memory-cinema' },
   { label: '+signal', href: '#subscribe' },
 ];

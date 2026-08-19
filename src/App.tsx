@@ -9,6 +9,7 @@ import { FooterSection } from './components/FooterSection';
 import { SiteProtection } from './components/SiteProtection';
 import { AdminPage } from './pages/AdminPage';
 import { trackPageView } from './utils/analytics';
+import { FEATURE_FLAGS } from './data/paralifeData';
 
 export default function App() {
   const [isAdminRoute, setIsAdminRoute] = useState<boolean>(() => {
@@ -59,8 +60,8 @@ export default function App() {
           {/* 03 ABOUT */}
           <AboutSection />
 
-          {/* 04 MUSIC */}
-          <MusicSection />
+          {/* 04 MUSIC (Toggled via FEATURE_FLAGS.showMusicSection) */}
+          {FEATURE_FLAGS.showMusicSection && <MusicSection />}
 
           {/* 05 MEMORY CINEMA */}
           <MemoryCinemaSection />
