@@ -1,16 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
-import heroVideo from '../assets/videos/hero-section.mp4';
+import heroVideoWebm from '../assets/videos/hero-section.webm';
+import heroVideoMp4 from '../assets/videos/hero-section.mp4';
+import heroMobileVideoWebm from '../assets/videos/hero-section-mobile.webm';
+import heroMobileVideoMp4 from '../assets/videos/hero-section-mobile.mp4';
 import { HERO_DATA } from '../data/paralifeData';
 
 export const HeroSection: React.FC = () => {
   const [isSoundOn, setIsSoundOn] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.muted = !isSoundOn;
     }
   }, [isSoundOn]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+  }, [isMobile]);
 
   const toggleSound = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -32,10 +52,10 @@ export const HeroSection: React.FC = () => {
       className="relative h-[100svh] min-h-[500px] w-full flex items-end justify-center overflow-hidden bg-[#121316] pb-20 sm:pb-24 md:pb-28"
       aria-label="Hero"
     >
-      {/* Full-screen Background Video */}
+      {/* Background Video with WebM primary and MP4 fallback (responsive mobile/desktop) */}
       <video
         ref={videoRef}
-        src={heroVideo}
+        key={isMobile ? 'mobile' : 'desktop'}
         autoPlay
         loop
         muted
@@ -45,7 +65,16 @@ export const HeroSection: React.FC = () => {
         onContextMenu={(e) => e.preventDefault()}
         style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
         className="absolute inset-0 w-full h-full object-cover z-0 filter brightness-90 contrast-[1.05]"
-      />
+      >
+        <source
+          src={isMobile ? heroMobileVideoWebm : heroVideoWebm}
+          type="video/webm"
+        />
+        <source
+          src={isMobile ? heroMobileVideoMp4 : heroVideoMp4}
+          type="video/mp4"
+        />
+      </video>
 
       {/* Dark Cinematic Vignette & Gradient Overlay */}
       <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#121316] via-black/25 to-[#121316]/50 pointer-events-none" />
