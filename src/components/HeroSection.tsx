@@ -8,6 +8,7 @@ import { HERO_DATA } from '../data/paralifeData';
 export const HeroSection: React.FC = () => {
   const [isSoundOn, setIsSoundOn] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export const HeroSection: React.FC = () => {
 
   useEffect(() => {
     if (videoRef.current) {
+      setIsVideoLoaded(false);
       videoRef.current.load();
       videoRef.current.play().catch(() => {});
     }
@@ -52,7 +54,7 @@ export const HeroSection: React.FC = () => {
       className="relative h-[100svh] min-h-[500px] w-full flex items-end justify-center overflow-hidden bg-[#121316] pb-20 sm:pb-24 md:pb-28"
       aria-label="Hero"
     >
-      {/* Background Video with WebM primary and MP4 fallback (responsive mobile/desktop) */}
+      {/* Background Video with WebM primary and MP4 fallback (responsive mobile/desktop with smooth 60fps) */}
       <video
         ref={videoRef}
         key={isMobile ? 'mobile' : 'desktop'}
@@ -62,9 +64,25 @@ export const HeroSection: React.FC = () => {
         playsInline
         preload="auto"
         controlsList="nodownload no-remote-playback"
+        disablePictureInPicture
+        onPlaying={() => setIsVideoLoaded(true)}
+        onLoadedData={() => setIsVideoLoaded(true)}
+        onEnded={() => {
+          if (videoRef.current) {
+            videoRef.current.currentTime = 0;
+            videoRef.current.play().catch(() => {});
+          }
+        }}
         onContextMenu={(e) => e.preventDefault()}
-        style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
-        className="absolute inset-0 w-full h-full object-cover z-0 filter brightness-90 contrast-[1.05]"
+        style={{
+          transform: 'translate3d(0, 0, 0)',
+          willChange: 'transform, opacity',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+        }}
+        className={`absolute inset-0 w-full h-full object-cover z-0 filter brightness-90 contrast-[1.05] transition-opacity duration-700 ease-out ${
+          isVideoLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
       >
         <source
           src={isMobile ? heroMobileVideoWebm : heroVideoWebm}
