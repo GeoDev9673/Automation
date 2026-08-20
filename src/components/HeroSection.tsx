@@ -99,14 +99,14 @@ export const HeroSection: React.FC = () => {
 
       {/* Bottom Hero Overlay:
           - Mobile: Centered stack with tagline and sound button below
-          - Desktop: Tagline centered lower at the bottom, sound button positioned on the right on the exact same horizontal line */}
-      <div className="relative z-20 w-full max-w-[1440px] px-4 sm:px-6 md:px-12 flex flex-col md:flex-row items-center justify-center space-y-5 sm:space-y-6 md:space-y-0">
+          - Desktop: Tagline centered lower at the bottom, sound button positioned directly on the right side on the exact same horizontal line */}
+      <div className="relative z-20 w-full px-4 sm:px-6 md:px-12 flex flex-col md:flex-row items-center justify-center space-y-5 sm:space-y-6 md:space-y-0">
         <h1 className="text-[15px] sm:text-[19px] md:text-[24px] lg:text-[28px] tracking-[0.22em] sm:tracking-[0.26em] uppercase text-[#F2EEE8] font-light leading-snug drop-shadow-2xl text-center">
           {HERO_DATA.tagline}
         </h1>
 
-        {/* Sound Toggle Button (Mobile: centered below; Desktop: aligned right on the exact same line as text) */}
-        <div className="md:absolute md:right-8 lg:right-12 md:top-1/2 md:-translate-y-1/2 flex items-center">
+        {/* Sound Toggle Button (Mobile: centered below; Desktop: directly at the right edge on the exact same line as text) */}
+        <div className="md:absolute md:right-6 lg:right-12 md:top-1/2 md:-translate-y-1/2 flex items-center">
           <button
             type="button"
             onClick={toggleSound}
