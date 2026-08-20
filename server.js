@@ -23,7 +23,7 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
-  next;
+  next();
 });
 
 // Data Directory and JSON/SQLite Database initialization
