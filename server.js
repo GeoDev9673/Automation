@@ -81,10 +81,7 @@ const saveAnalytics = (list) => {
 
 // Brevo Welcome Email integration helper
 const sendBrevoWelcomeEmail = async (email) => {
-  const BREVO_API_KEY =
-    process.env.VITE_BREVO_API_KEY ||
-    process.env.BREVO_API_KEY ||
-    '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';
+  const BREVO_API_KEY = process.env.BREVO_API_KEY || process.env.VITE_BREVO_API_KEY || '';
   if (!BREVO_API_KEY) return;
 
   try {

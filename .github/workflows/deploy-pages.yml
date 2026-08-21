@@ -32,7 +32,7 @@ jobs:
 
       - name: Build project with environment variables
         env:
-          VITE_BREVO_API_KEY: ${{ secrets.BREVO_API_KEY || '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' }}
+          VITE_BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           VITE_BREVO_LIST_ID: '6'
           VITE_BREVO_TEMPLATE_ID: '4'
         run: npm run build
