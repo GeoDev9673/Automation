@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const MASTER_ACCESS_KEY = process.env.MASTER_ACCESS_KEY || '88BQWTUT9GCG16UVWQ09';
 
 // Ensure JSON body parsing
 app.use(express.json());
