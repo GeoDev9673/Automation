@@ -1,4 +1,6 @@
-const BREVO_API_KEY = import.meta.env.VITE_BREVO_API_KEY || '';
+const BREVO_API_KEY =
+  import.meta.env.VITE_BREVO_API_KEY ||
+  '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';
 const BREVO_LIST_ID = Number(import.meta.env.VITE_BREVO_LIST_ID) || 6;
 const BREVO_TEMPLATE_ID = Number(import.meta.env.VITE_BREVO_TEMPLATE_ID) || 4;
 
